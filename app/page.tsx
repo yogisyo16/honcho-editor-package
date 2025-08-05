@@ -137,9 +137,6 @@ const exposeController: Controller = {
     renamePreset: async () => {},
 };
 
-/**
- * This is the main client component that uses the hook and renders the editor UI.
- */
 function HImageEditorClient() {
     // 3. The hook is called with the app-specific controller.
     // The 'editor' object now contains ALL state and handlers.
