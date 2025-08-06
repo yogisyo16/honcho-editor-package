@@ -4,6 +4,9 @@ import React, { useState, useMemo, useEffect, useRef, Suspense  } from "react";
 import { Box, Stack, CircularProgress, Typography, Checkbox, Paper } from "@mui/material";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import Script from 'next/script';
+import { GalleryServiceImpl } from "@/services/gallery/gallery";
+import { apiV3 } from "@/services/commons/base";
+import { firstValueFrom } from "rxjs";
 import {
     // Core Hook
     useHonchoEditor,
@@ -52,29 +55,6 @@ const initialAdjustments: AdjustmentState = {
     whitesScore: 0, blacksScore: 0, saturationScore: 0, contrastScore: 0, clarityScore: 0, sharpnessScore: 0,
 };
 
-const nativeCallbacks = new Map<string, { resolve: (value: string) => void; reject: (reason?: any) => void }>();
-
-function handleNativeImageResponse(callbackId: string, base64Data: string | null, error: string | null) {
-    if (nativeCallbacks.has(callbackId)) {
-        const { resolve, reject } = nativeCallbacks.get(callbackId)!;
-        if (error) {
-            reject(new Error(error));
-        } else if (base64Data) {
-            const dataUrl = `data:image/jpeg;base64,${base64Data}`;
-            resolve(dataUrl);
-        } else {
-            reject(new Error('Native side returned no data.'));
-        }
-        nativeCallbacks.delete(callbackId);
-    }
-}
-
-// Expose the handler on the window object
-if (typeof window !== 'undefined') {
-    (window as any).handleNativeImageResponse = handleNativeImageResponse;
-}
-
-// Helper to check if an image has any edits
 const hasAdjustments = (state: AdjustmentState): boolean => {
     if (!state) return false;
     return Object.values(state).some(value => value !== 0);
@@ -82,39 +62,68 @@ const hasAdjustments = (state: AdjustmentState): boolean => {
 
 const exposeController: Controller = {
     onGetImage: async (imageID: string) => {
-        console.log(`[JS Bridge] Requesting image with ID: ${imageID}`);
-        
-        const iOSBridge = (window as any).webkit?.messageHandlers?.nativeHandler;
-        const androidBridge = (window as any).Android;
+        console.log("onGetImage called", imageID);
 
-        // NATIVE ANDROID LOGIC
-        if (androidBridge) {
-            console.log("Android environment detected. Calling getImageForEditing().");
-            return new Promise((resolve, reject) => {
-                const callbackId = `cb_${Date.now()}`;
-                nativeCallbacks.set(callbackId, { resolve, reject });
-                androidBridge.getImageForEditing(imageID, callbackId, null);
-            });
-        } 
-        // NATIVE IOS LOGIC
-        else if (iOSBridge) {
-            console.log("iOS environment detected. Posting message to nativeHandler.");
-            return new Promise((resolve, reject) => {
-                const callbackId = `cb_${Date.now()}`;
-                nativeCallbacks.set(callbackId, { resolve, reject });
-                const message = { action: 'getImage', imageId: imageID, callbackId: callbackId };
-                iOSBridge.postMessage(message);
-            });
-        } 
-        // WEB FALLBACK LOGIC
-        else {
-            console.warn("Native bridge not found. Using development fallback URL.");
-            const imageUrl = `https://d2cxumz3vt1s04.cloudfront.net/staging/gallery-photo/67ee6b55b8e4273707f68978/preview/${imageID}.jpeg`;
-            return imageUrl;
+        const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
+
+        let token: string | null = null;
+        let userUid: string = "";
+
+        if (isMobile) {
+            // Get token and userUid from native
+            const onGetToken = (): Promise<{ token: string, userUid: string }> => {
+                return new Promise((resolve, reject) => {
+                    // iOS
+                    if ((window as any).webkit?.messageHandlers?.nativeHandler) {
+                        (window as any).webkit.messageHandlers.nativeHandler.postMessage(
+                            JSON.stringify({ type: "getToken" })
+                        );
+                        (window as any).onReceiveToken = (token: string, userUid: string) => resolve({ token, userUid });
+                    }
+                    // Android
+                    else if ((window as any).Android?.getToken) {
+                        try {
+                            const token = (window as any).Android.getToken();
+                            const userUid = (window as any).Android.getUserUid ? (window as any).Android.getUserUid() : "";
+                            resolve({ token, userUid });
+                        } catch (err) {
+                            reject("Android getToken failed");
+                        }
+                    }
+                    else {
+                        reject("Not a mobile environment");
+                    }
+                });
+            };
+            try {
+                const result = await onGetToken();
+                token = result.token;
+                userUid = result.userUid;
+            } catch (err) {
+                console.error("onGetToken error:", err);
+                return null;
+            }
+        }
+
+        // Use GalleryServiceImpl for both web and mobile
+        const galleryService = new GalleryServiceImpl(apiV3, userUid);
+
+        try {
+            // For mobile: pass token, for web: pass empty string
+            const observable = galleryService.getGallery(token ?? "", 1, imageID);
+            const galleryPage = await firstValueFrom(observable); // or firstValueFrom(observable) if using RxJS 7+
+            const gallery = galleryPage.gallery?.[0];
+            if (!gallery) throw new Error("No gallery found in response");
+
+            return gallery.original?.path || gallery.download?.path;
+        } catch (err) {
+            console.error("onGetImage error:", err);
+            return null;
         }
     },
 
     handleBack: () => {
+        // TODO : Parameter image id latest
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
             (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
             console.log("Sent 'back' message to iOS native handler.");
