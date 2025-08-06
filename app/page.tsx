@@ -50,6 +50,20 @@ import type {
     ImageItem
 } from '@yogiswara/honcho-editor-ui';
 
+declare global {
+    interface Window {
+        onReceiveToken?: (token: string, userUid: string) => void;
+    }
+}
+
+if (typeof window !== "undefined") {
+    window.onReceiveToken = (token: string, userUid: string) => {
+        console.log("[DEBUG] window.onReceiveToken called");
+        console.log("Token:", token);
+        console.log("UserUid:", userUid);
+    };
+}
+
 const initialAdjustments: AdjustmentState = {
     tempScore: 0, tintScore: 0, vibranceScore: 0, exposureScore: 0, highlightsScore: 0, shadowsScore: 0,
     whitesScore: 0, blacksScore: 0, saturationScore: 0, contrastScore: 0, clarityScore: 0, sharpnessScore: 0,
@@ -60,100 +74,114 @@ const hasAdjustments = (state: AdjustmentState): boolean => {
     return Object.values(state).some(value => value !== 0);
 };
 
-const exposeController: Controller = {
-    onGetImage: async (imageID: string) => {
-        console.log("onGetImage called", imageID);
+function HImageEditorClient() {
+    // The 'editor' object now contains ALL state and handlers.
+    // const editor = useHonchoEditor(exposeController);
+    const isMobile = useIsMobile();
+    const [imageHistory, setImageHistory] = useState<string[]>([]);
+    const editor = useHonchoEditor({
+        onGetImage: async (imageID: string) => {
+            console.log("onGetImage called", imageID);
 
-        const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
+            const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
 
-        let token: string | null = null;
-        let userUid: string = "";
+            let token: string | null = null;
+            let userUid: string = "";
 
-        if (isMobile) {
-            // Get token and userUid from native
-            const onGetToken = (): Promise<{ token: string, userUid: string }> => {
-                return new Promise((resolve, reject) => {
-                    // iOS
-                    if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-                        (window as any).webkit.messageHandlers.nativeHandler.postMessage(
-                            JSON.stringify({ type: "getToken" })
-                        );
-                        (window as any).onReceiveToken = (token: string, userUid: string) => resolve({ token, userUid });
-                    }
-                    // Android
-                    else if ((window as any).Android?.getToken) {
-                        try {
-                            const token = (window as any).Android.getToken();
-                            const userUid = (window as any).Android.getUserUid ? (window as any).Android.getUserUid() : "";
-                            resolve({ token, userUid });
-                        } catch (err) {
-                            reject("Android getToken failed");
+            if (isMobile) {
+                // Get token and userUid from native
+                const onGetToken = (): Promise<{ token: string, userUid: string }> => {
+                    return new Promise((resolve, reject) => {
+                        // iOS
+                        if ((window as any).webkit?.messageHandlers?.nativeHandler) {
+                            (window as any).webkit.messageHandlers.nativeHandler.postMessage(
+                                JSON.stringify({ type: "getToken" })
+                            );
+                            (window as any).onReceiveToken = (token: string, userUid: string) => resolve({ token, userUid });
                         }
-                    }
-                    else {
-                        reject("Not a mobile environment");
-                    }
-                });
-            };
+                        // Android
+                        else if ((window as any).Android?.getToken) {
+                            try {
+                                const token = (window as any).Android.getToken();
+                                const userUid = (window as any).Android.getUserUid ? (window as any).Android.getUserUid() : "";
+                                resolve({ token, userUid });
+                            } catch (err) {
+                                reject("Android getToken failed");
+                            }
+                        }
+                        else {
+                            reject("Not a mobile environment");
+                        }
+                    });
+                };
+                try {
+                    const result = await onGetToken();
+                    token = result.token;
+                    userUid = result.userUid;
+                } catch (err) {
+                    console.error("onGetToken error:", err);
+                    return null;
+                }
+            } else {
+                token = "";
+                userUid = "";
+            }
+
+            // Use GalleryServiceImpl for both web and mobile
+            const galleryService = new GalleryServiceImpl(apiV3, userUid);
+
             try {
-                const result = await onGetToken();
-                token = result.token;
-                userUid = result.userUid;
+                // For mobile: pass token, for web: pass empty string
+                const observable = galleryService.getGallery(token ?? "", 1, imageID);
+                const galleryPage = await firstValueFrom(observable);
+                const gallery = galleryPage.gallery?.[0];
+                if (!gallery) throw new Error("No gallery found in response");
+
+                return gallery.original?.path || gallery.download?.path;
             } catch (err) {
-                console.error("onGetToken error:", err);
+                console.error("onGetImage error:", err);
                 return null;
             }
-        }
+        },
+        handleBack: () => {
+            setImageHistory(prev => {
+                if (prev.length > 1) {
+                    const newHistory = prev.slice(0, -1);
+                    const previousImageId = newHistory[newHistory.length - 1];
+                    // Load the previous image
+                   (window as any).loadInitialImageFromNative(previousImageId);
+                    return newHistory;
+                } else {
+                    // If no previous image, fallback to native/web back
+                    if ((window as any).webkit?.messageHandlers?.nativeHandler) {
+                        (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
+                    } else if ((window as any).Android?.goBack) {
+                        (window as any).Android.goBack();
+                    } else {
+                        window.history.back();
+                    }
+                    return prev;
+                }
+            });
+        },
+        getImageList: async () => { return []; },
+        syncConfig: async () => {},
+        getPresets: async () => { return []; },
+        createPreset: async () => { return null; },
+        deletePreset: async () => {},
+        renamePreset: async () => {},
+    });
 
-        // Use GalleryServiceImpl for both web and mobile
-        const galleryService = new GalleryServiceImpl(apiV3, userUid);
-
-        try {
-            // For mobile: pass token, for web: pass empty string
-            const observable = galleryService.getGallery(token ?? "", 1, imageID);
-            const galleryPage = await firstValueFrom(observable); // or firstValueFrom(observable) if using RxJS 7+
-            const gallery = galleryPage.gallery?.[0];
-            if (!gallery) throw new Error("No gallery found in response");
-
-            return gallery.original?.path || gallery.download?.path;
-        } catch (err) {
-            console.error("onGetImage error:", err);
-            return null;
-        }
-    },
-
-    handleBack: () => {
-        // TODO : Parameter image id latest
-        if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
-            console.log("Sent 'back' message to iOS native handler.");
-        } 
-        else if ((window as any).Android?.goBack) {
-            console.log("Android environment detected. Calling goBack().");
-            (window as any).Android.goBack();
-        }
-        else {
-            console.log("Standard web browser detected. Navigating back in history.");
-            window.history.back();
-        }
-    },
-    // They must provide placeholder or real implementations for all methods
-    getImageList: async () => { return []; },
-    syncConfig: async () => {},
-    getPresets: async () => { return []; },
-    createPreset: async () => { return null; },
-    deletePreset: async () => {},
-    renamePreset: async () => {},
-};
-
-function HImageEditorClient() {
-    // 3. The hook is called with the app-specific controller.
-    // The 'editor' object now contains ALL state and handlers.
-    const editor = useHonchoEditor(exposeController);
-    const isMobile = useIsMobile();
-    
-    const [displayedToken, setDisplayedToken] = useState<string | null>(null);
-    const [displayedImageId, setDisplayedImageId] = useState<string | null>(null);
+    // Patch window.loadInitialImageFromNative to update history
+    useEffect(() => {
+        (window as any).loadInitialImageFromNative = (imageId: string) => {
+            setImageHistory(prev => [...prev, imageId]);
+            editor.loadImageFromId(imageId);
+        };
+        return () => {
+            delete (window as any).loadInitialImageFromNative;
+        };
+    }, [editor]);
 
     // Dummy/placeholder handlers that remain in the component
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
@@ -161,6 +189,7 @@ function HImageEditorClient() {
     // const handleZoomMenuClose = () => editor.setAnchorMenuZoom(null);
     // const handleZoomAction = (level: string) => { console.log(`Zoom: ${level}`); handleZoomMenuClose(); };
 
+    
     const renderActivePanelBulk = () => {
         // MARK: Dekstop Bulk Editor panels
         switch (editor.activePanel) {
@@ -327,21 +356,6 @@ function HImageEditorClient() {
                 {!editor.isOnline && <HAlertInternetBox />}
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
-                {displayedToken && (
-                    <Box sx={{ p: 1, mx: 2, backgroundColor: 'grey.900', borderRadius: 1, mt: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'lime', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                            <strong>Token Received:</strong> {displayedToken}
-                        </Typography>
-                    </Box>
-                )}
-                {displayedImageId && (
-                    <Box sx={{ p: 1, mx: 2, backgroundColor: 'grey.900', borderRadius: 1, mt: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'white', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                            <strong>Image ID:</strong> {displayedImageId}
-                        </Typography>
-                    </Box>
-                )}
-    {/* sada */}
                 <HHeaderEditor
                     onBack={editor.handleBack}
                     onUndo={editor.handleUndo}
