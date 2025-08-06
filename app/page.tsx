@@ -341,7 +341,7 @@ function HImageEditorClient() {
                         </Typography>
                     </Box>
                 )}
-
+    {/* sada */}
                 <HHeaderEditor
                     onBack={editor.handleBack}
                     onUndo={editor.handleUndo}
