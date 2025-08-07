@@ -6,6 +6,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Script from 'next/script';
+import { Gallery } from "@/types";
 import { GalleryServiceImpl } from "@/services/gallery/gallery";
 import { apiV3 } from "@/services/commons/base";
 import { firstValueFrom } from "rxjs";
@@ -77,104 +78,23 @@ const hasAdjustments = (state: AdjustmentState): boolean => {
 };
 
 const exposeController: Controller = {
-    onGetImage: async (imageID: string) => {
-        console.log("onGetImage called", imageID);
-
-        const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
-
-        let token: string | null = null;
-        let firebaseUid: string = "";
-
-        if (typeof window !== "undefined") {
-            const params = new URLSearchParams(window.location.search);
-            firebaseUid = params.get("firebaseuid") || "";
-        }
-
-        if (isMobile) {
-            // Get token from native only
-            const onGetToken = (): Promise<string> => {
-                return new Promise((resolve, reject) => {
-                    // iOS
-                    if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-                        (window as any).webkit.messageHandlers.nativeHandler.postMessage(
-                            JSON.stringify({ type: "getToken" })
-                        );
-                        (window as any).onReceiveToken = (token: string) => resolve(token);
-                    }
-                    // Android
-                    else if ((window as any).Android?.getToken) {
-                        try {
-                            const token = (window as any).Android.getToken();
-                            resolve(token);
-                        } catch (err) {
-                            reject("Android getToken failed");
-                        }
-                    }
-                    else {
-                        reject("Not a mobile environment");
-                    }
-                });
-            };
-            try {
-                token = await onGetToken();
-            } catch (err) {
-                console.error("onGetToken error:", err);
-                return null;
-            }
-            // If not set from URL, extract from token
-            if (!firebaseUid && token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    firebaseUid = payload.user_id || payload.firebaseUid || payload.sub || "";
-                } catch (err) {
-                    console.error("Failed to extract firebase UID from token:", err);
-                    firebaseUid = "";
-                }
-            }
-        }
-
-        // Use GalleryServiceImpl for both web and mobile
-        const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
-
-        try {
-            // For mobile: pass token, for web: pass empty string
-            const observable = galleryService.getGallery(token ?? "", 1, imageID);
-            const galleryPage = await firstValueFrom(observable);
-            const gallery = galleryPage.gallery?.[0];
-            if (!gallery) throw new Error("No gallery found in response");
-
-            return gallery.original?.path || gallery.download?.path;
-        } catch (err) {
-            console.error("onGetImage error:", err);
-            return null;
-        }
+    onGetImage: async (firebaseUid: string, imageID: string) => {
+        return {} as Gallery;
     },
-    // ...existing code...
-
-    handleBack: () => {
-        // TODO : Parameter image id latest
-        // On use Effect
+    handleBack: (firebaseUid: string) => {},
+    getImageList: async (firebaseUid: string) => [],
+    syncConfig: async (firebaseUid: string) => {},
+    getPresets: async (firebaseUid: string) => [],
+    createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState) => {
+        return {} as Preset;
     },
-    handlePrev() {
-        // TODO : Parameter image previous from gallery ID
-        // On use Effect
-    },
-    handleNext() {
-        // TODO : Parameter image next from gallery ID
-        // On use Effect
-    },
-    getImageList: async () => { return []; },
-    syncConfig: async () => {},
-    getPresets: async () => { return []; },
-    createPreset: async () => { return null; },
-    deletePreset: async () => {},
-    renamePreset: async () => {},
+    deletePreset: async (firebaseUid: string, presetId: string) => {},
 };
 
 if (typeof window !== 'undefined') { (window as any).debugController = exposeController; }
 
 function HImageEditorClient() {
-    const editor = useHonchoEditor(exposeController);
+    // Pass imageId to useHonchoEditor as initialImageId (if your hook supports it)
     const colors = useColors();
     const isMobile = useIsMobile();
     
@@ -191,47 +111,19 @@ function HImageEditorClient() {
     const [testResult, setTestResult] = useState<string | null>(null);
     const [testLoading, setTestLoading] = useState(false);
 
+    const [imageId, setimageId] = useState<string>("");
+    const [firebaseId, setfirebaseId] = useState<string>("");
+    const editor = useHonchoEditor(exposeController, imageId, firebaseId);
+
     useEffect(() => {
-        exposeController.handleBack = () => {
-            if (currentImageIndex > 0) {
-                const prevIndex = currentImageIndex - 1;
-                const prevImageId = imageHistory[prevIndex];
-                setCurrentImageIndex(prevIndex);
-                setDisplayedImageId(prevImageId);
-                // Load previous image
-                editor.loadImageFromId(prevImageId);
-            } else {
-                // Fallback to native/web back
-                if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-                    (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
-                } else if ((window as any).Android?.goBack) {
-                    (window as any).Android.goBack();
-                } else {
-                    window.history.back();
-                }
-            }
-        };
-
-        exposeController.handlePrev = () => {
-            if (currentImageIndex > 0) {
-                const prevIndex = currentImageIndex - 1;
-                const prevImageId = imageHistory[prevIndex];
-                setCurrentImageIndex(prevIndex);
-                setDisplayedImageId(prevImageId);
-                editor.loadImageFromId(prevImageId);
-            }
-        };
-
-        exposeController.handleNext = () => {
-            if (currentImageIndex < imageHistory.length - 1) {
-                const nextIndex = currentImageIndex + 1;
-                const nextImageId = imageHistory[nextIndex];
-                setCurrentImageIndex(nextIndex);
-                setDisplayedImageId(nextImageId);
-                editor.loadImageFromId(nextImageId);
-            }
-        };
-    }, [currentImageIndex, imageHistory, editor]);
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const imageIdFromUrl = params.get("imageId");
+            const firebaseUidFromUrl = params.get("firebaseuid");
+            if (imageIdFromUrl) setimageId(imageIdFromUrl);
+            if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
+        }
+    }, []);
 
     // Dummy/placeholder handlers that remain in the component
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
@@ -250,10 +142,10 @@ function HImageEditorClient() {
         // Threshold for swipe (adjust as needed)
         if (deltaX > 50) {
             // Swipe right: previous image
-            editor.handlePrev();
+            editor.handlePrev;
         } else if (deltaX < -50) {
             // Swipe left: next image
-            editor.handleNext();
+            editor.handleNext;
         }
         touchStartX.current = null;
     };
@@ -426,7 +318,7 @@ function HImageEditorClient() {
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
 
-                {editor.displayedToken && (
+                {/* {editor.displayedToken && (
                     <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: 'grey.900' }}>
                         <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>Test Mobile Token & Image ID</Typography>
                         <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
@@ -445,7 +337,7 @@ function HImageEditorClient() {
                                 setTestLoading(true);
                                 setTestResult(null);
                                 try {
-                                    const url = await exposeController.onGetImage(testImageId);
+                                    const url = await editor.onGetImage(testImageId);
                                     setTestResult(url ? `Success! Image URL: ${url}` : 'No image found or invalid token/image ID.');
                                 } catch (err) {
                                     setTestResult('Error: ' + (err instanceof Error ? err.message : String(err)));
@@ -463,10 +355,10 @@ function HImageEditorClient() {
                             </Typography>
                         )}
                     </Box>
-                )}
+                )} */}
 
                 <HHeaderEditor
-                    onBack={editor.handleBack}
+                    onBack={editor.handleBackCallback}
                     onUndo={editor.handleUndo}
                     onRedo={editor.handleRedo}
                     onRevert={editor.handleRevert}
@@ -605,7 +497,7 @@ function HImageEditorClient() {
                                                 backgroundColor: colors.onBackground,
                                             }
                                         }}
-                                        onClick={editor.handlePrev}
+                                        onClick={() => editor.handlePrev(firebaseId)}
                                         onMouseEnter={() => setIsPrevHovered(true)}
                                         onMouseLeave={() => setIsPrevHovered(false)}
                                         aria-label="Previous Image"
@@ -635,7 +527,7 @@ function HImageEditorClient() {
                                                 backgroundColor: colors.onBackground,
                                             }
                                         }}
-                                        onClick={editor.handleNext}
+                                        onClick={() => editor.handleNext(firebaseId)}
                                         onMouseEnter={() => setIsNextHovered(true)}
                                         onMouseLeave={() => setIsNextHovered(false)}
                                         aria-label="Next Image"
