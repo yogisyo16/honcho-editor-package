@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef, Suspense  } from "react";
+import React, { useState, useMemo, useEffect, useRef, Suspense, useCallback } from "react";
 import { Box, Stack, CircularProgress, Typography, Checkbox, Paper, Button } from "@mui/material";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -77,11 +77,64 @@ const hasAdjustments = (state: AdjustmentState): boolean => {
     return Object.values(state).some(value => value !== 0);
 };
 
+const onGetToken = () => new Promise<string>((resolve, reject) => {
+    // iOS
+    if ((window as any).webkit?.messageHandlers?.nativeHandler) {
+        (window as any).webkit.messageHandlers.nativeHandler.postMessage(
+            JSON.stringify({ type: "getToken" })
+        );
+        (window as any).onReceiveToken = (token: string) => {
+            resolve(token);
+        };
+    }
+    // Android
+    else if ((window as any).Android?.getToken) {
+        try {
+            const token: string = (window as any).Android.getToken();
+            resolve(token);
+        } catch (err) {
+            reject("Android getToken failed");
+        }
+    }
+    else {
+        reject("Not a mobile environment");
+    }
+});
+
 const exposeController: Controller = {
     onGetImage: async (firebaseUid: string, imageID: string) => {
-        return {} as Gallery;
+        console.debug("on Get Image called");
+        const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
+
+        if (isMobile) {
+            // Get token from native only
+            const token = await onGetToken().catch(console.error);
+
+            if (!token) {
+                throw new Error("token failed to get");
+            }
+
+            // Use GalleryServiceImpl for both web and mobile
+            const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
+
+            try {
+                // For mobile: pass token, for web: pass empty string
+                const result = await firstValueFrom(galleryService.getImageById(token, imageID));
+                if (!result) throw new Error("No gallery found in response");
+
+                return result;
+            } catch (err) {
+                console.error("onGetImage error:", err);
+                throw new Error("No gallery found in response");
+            }
+        } else {
+            console.warn("failed to get token cause this pc");
+            throw new Error("can't call in PC must be in mobile");
+        }
     },
-    handleBack: (firebaseUid: string) => {},
+    handleBack: (firebaseUid: string) => {
+        // call native function
+    },
     getImageList: async (firebaseUid: string) => [],
     syncConfig: async (firebaseUid: string) => {},
     getPresets: async (firebaseUid: string) => [],
@@ -98,6 +151,8 @@ function HImageEditorClient() {
     const colors = useColors();
     const isMobile = useIsMobile();
     
+    const useControllerRef = useRef<Controller>();
+
     const [displayedToken, setDisplayedToken] = useState<string | null>(null);
     const [displayedImageId, setDisplayedImageId] = useState<string | null>(null);
 
@@ -124,6 +179,8 @@ function HImageEditorClient() {
             if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
         }
     }, []);
+
+    // console.log(editor.)
 
     // Dummy/placeholder handlers that remain in the component
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
