@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, Suspense  } from "react";
-import { Box, Stack, CircularProgress, Typography, Checkbox, Paper } from "@mui/material";
+import { Box, Stack, CircularProgress, Typography, Checkbox, Paper, Button } from "@mui/material";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Script from 'next/script';
 import { GalleryServiceImpl } from "@/services/gallery/gallery";
 import { apiV3 } from "@/services/commons/base";
@@ -81,25 +83,24 @@ const exposeController: Controller = {
         const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
 
         let token: string | null = null;
-        let userUid: string = "";
+        let userUid: string = ""; // Get this from your URL or other logic
 
         if (isMobile) {
-            // Get token and userUid from native
-            const onGetToken = (): Promise<{ token: string, userUid: string }> => {
+            // Get token from native only
+            const onGetToken = (): Promise<string> => {
                 return new Promise((resolve, reject) => {
                     // iOS
                     if ((window as any).webkit?.messageHandlers?.nativeHandler) {
                         (window as any).webkit.messageHandlers.nativeHandler.postMessage(
                             JSON.stringify({ type: "getToken" })
                         );
-                        (window as any).onReceiveToken = (token: string, userUid: string) => resolve({ token, userUid });
+                        (window as any).onReceiveToken = (token: string) => resolve(token);
                     }
                     // Android
                     else if ((window as any).Android?.getToken) {
                         try {
                             const token = (window as any).Android.getToken();
-                            const userUid = (window as any).Android.getUserUid ? (window as any).Android.getUserUid() : "";
-                            resolve({ token, userUid });
+                            resolve(token);
                         } catch (err) {
                             reject("Android getToken failed");
                         }
@@ -110,9 +111,7 @@ const exposeController: Controller = {
                 });
             };
             try {
-                const result = await onGetToken();
-                token = result.token;
-                userUid = result.userUid;
+                token = await onGetToken();
             } catch (err) {
                 console.error("onGetToken error:", err);
                 return null;
@@ -138,26 +137,16 @@ const exposeController: Controller = {
 
     handleBack: () => {
         // TODO : Parameter image id latest
-        if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
-            console.log("Sent 'back' message to iOS native handler.");
-        } 
-        else if ((window as any).Android?.goBack) {
-            console.log("Android environment detected. Calling goBack().");
-            (window as any).Android.goBack();
-        }
-        else {
-            console.log("Standard web browser detected. Navigating back in history.");
-            window.history.back();
-        }
+        // On use Effect
     },
     handlePrev() {
         // TODO : Parameter image previous from gallery ID
+        // On use Effect
     },
     handleNext() {
         // TODO : Parameter image next from gallery ID
+        // On use Effect
     },
-    // They must provide placeholder or real implementations for all methods
     getImageList: async () => { return []; },
     syncConfig: async () => {},
     getPresets: async () => { return []; },
@@ -166,20 +155,88 @@ const exposeController: Controller = {
     renamePreset: async () => {},
 };
 
+if (typeof window !== 'undefined') { (window as any).debugController = exposeController; }
+
 function HImageEditorClient() {
-    // 3. The hook is called with the app-specific controller.
-    // The 'editor' object now contains ALL state and handlers.
     const editor = useHonchoEditor(exposeController);
+    const colors = useColors();
     const isMobile = useIsMobile();
     
     const [displayedToken, setDisplayedToken] = useState<string | null>(null);
     const [displayedImageId, setDisplayedImageId] = useState<string | null>(null);
 
+    const [imageHistory, setImageHistory] = useState<string[]>([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState<number>(-1);
+    const [isPrevHovered, setIsPrevHovered] = useState(false);
+    const [isNextHovered, setIsNextHovered] = useState(false);
+
+    useEffect(() => {
+        exposeController.handleBack = () => {
+            if (currentImageIndex > 0) {
+                const prevIndex = currentImageIndex - 1;
+                const prevImageId = imageHistory[prevIndex];
+                setCurrentImageIndex(prevIndex);
+                setDisplayedImageId(prevImageId);
+                // Load previous image
+                editor.loadImageFromId(prevImageId);
+            } else {
+                // Fallback to native/web back
+                if ((window as any).webkit?.messageHandlers?.nativeHandler) {
+                    (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
+                } else if ((window as any).Android?.goBack) {
+                    (window as any).Android.goBack();
+                } else {
+                    window.history.back();
+                }
+            }
+        };
+
+        exposeController.handlePrev = () => {
+            if (currentImageIndex > 0) {
+                const prevIndex = currentImageIndex - 1;
+                const prevImageId = imageHistory[prevIndex];
+                setCurrentImageIndex(prevIndex);
+                setDisplayedImageId(prevImageId);
+                editor.loadImageFromId(prevImageId);
+            }
+        };
+
+        exposeController.handleNext = () => {
+            if (currentImageIndex < imageHistory.length - 1) {
+                const nextIndex = currentImageIndex + 1;
+                const nextImageId = imageHistory[nextIndex];
+                setCurrentImageIndex(nextIndex);
+                setDisplayedImageId(nextImageId);
+                editor.loadImageFromId(nextImageId);
+            }
+        };
+    }, [currentImageIndex, imageHistory, editor]);
+
     // Dummy/placeholder handlers that remain in the component
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
-    // const handleZoomMenuClose = () => editor.setAnchorMenuZoom(null);
-    // const handleZoomAction = (level: string) => { console.log(`Zoom: ${level}`); handleZoomMenuClose(); };
+
+    const touchStartX = useRef<number | null>(null);
+
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+        touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (touchStartX.current === null) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const deltaX = touchEndX - touchStartX.current;
+        // Threshold for swipe (adjust as needed)
+        if (deltaX > 50) {
+            // Swipe right: previous image
+            editor.handlePrev();
+        } else if (deltaX < -50) {
+            // Swipe left: next image
+            editor.handleNext();
+        }
+        touchStartX.current = null;
+    };
+
 
     const renderActivePanelBulk = () => {
         // MARK: Dekstop Bulk Editor panels
@@ -452,7 +509,80 @@ function HImageEditorClient() {
                                 </Box>
                             ) : (
                                 // Canvas for Single Edit
-                                <canvas ref={editor.canvasRef} style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }} />
+                                <Box
+                                    sx={{
+                                        position: 'relative',
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                    onTouchStart={handleTouchStart}
+                                    onTouchEnd={handleTouchEnd}>
+                                    <canvas
+                                        ref={editor.canvasRef}
+                                        style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
+                                    />
+                                    <Button
+                                        size="medium"
+                                        sx={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: 200,
+                                            transform: 'translateY(-50%)',
+                                            zIndex: 2,
+                                            minWidth: 0,
+                                            borderRadius: '50%',
+                                            width: 40,
+                                            height: 40,
+                                            padding: 0,
+                                            opacity: isPrevHovered ? 1 : 0, // Only visible on hover
+                                            transition: 'opacity 0.4s',
+                                            backgroundColor: colors.onBackground,
+                                            color: colors.surface,
+                                            '&:hover': {
+                                                backgroundColor: colors.onBackground,
+                                            }
+                                        }}
+                                        onClick={editor.handlePrev}
+                                        onMouseEnter={() => setIsPrevHovered(true)}
+                                        onMouseLeave={() => setIsPrevHovered(false)}
+                                        aria-label="Previous Image"
+                                    >
+                                        <ArrowBackIosNewIcon fontSize="small" />
+                                    </Button>
+
+                                    {/* Next Button */}
+                                    <Button
+                                        size="medium"
+                                        sx={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            right: 200,
+                                            transform: 'translateY(-50%)',
+                                            zIndex: 2,
+                                            minWidth: 0,
+                                            borderRadius: '50%',
+                                            width: '48px',
+                                            height: '48px',
+                                            padding: 0,
+                                            opacity: isNextHovered ? 1 : 0, // Only visible on hover
+                                            transition: 'opacity 0.4s',
+                                            backgroundColor: colors.onBackground,
+                                            color: colors.surface,
+                                            '&:hover': {
+                                                backgroundColor: colors.onBackground,
+                                            }
+                                        }}
+                                        onClick={editor.handleNext}
+                                        onMouseEnter={() => setIsNextHovered(true)}
+                                        onMouseLeave={() => setIsNextHovered(false)}
+                                        aria-label="Next Image"
+                                    >
+                                        <ArrowForwardIosIcon fontSize="small" />
+                                    </Button>
+                                </Box>
                             )
                         )}
                     </Box>
