@@ -180,6 +180,12 @@ function HImageEditorClient() {
         }
     }, []);
 
+    useEffect(() => {
+        if (imageId && firebaseId && editor && editor.loadImageFromId) {
+            editor.loadImageFromId(firebaseId, imageId);
+        }
+    }, [imageId, firebaseId, editor]);
+
     // console.log(editor.)
 
     // Dummy/placeholder handlers that remain in the component
