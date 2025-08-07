@@ -50,6 +50,20 @@ import type {
     ImageItem
 } from '@yogiswara/honcho-editor-ui';
 
+declare global {
+    interface Window {
+        onReceiveToken?: (token: string, userUid: string) => void;
+    }
+}
+
+if (typeof window !== "undefined") {
+    window.onReceiveToken = (token: string, userUid: string) => {
+        console.log("[DEBUG] window.onReceiveToken called");
+        console.log("Token:", token);
+        console.log("UserUid:", userUid);
+    };
+}
+
 const initialAdjustments: AdjustmentState = {
     tempScore: 0, tintScore: 0, vibranceScore: 0, exposureScore: 0, highlightsScore: 0, shadowsScore: 0,
     whitesScore: 0, blacksScore: 0, saturationScore: 0, contrastScore: 0, clarityScore: 0, sharpnessScore: 0,
@@ -136,6 +150,12 @@ const exposeController: Controller = {
             console.log("Standard web browser detected. Navigating back in history.");
             window.history.back();
         }
+    },
+    handlePrev() {
+        // TODO : Parameter image previous from gallery ID
+    },
+    handleNext() {
+        // TODO : Parameter image next from gallery ID
     },
     // They must provide placeholder or real implementations for all methods
     getImageList: async () => { return []; },
