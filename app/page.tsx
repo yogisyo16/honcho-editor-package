@@ -170,6 +170,11 @@ function HImageEditorClient() {
     const [isPrevHovered, setIsPrevHovered] = useState(false);
     const [isNextHovered, setIsNextHovered] = useState(false);
 
+    const [testToken, setTestToken] = useState('');
+    const [testImageId, setTestImageId] = useState('');
+    const [testResult, setTestResult] = useState<string | null>(null);
+    const [testLoading, setTestLoading] = useState(false);
+
     useEffect(() => {
         exposeController.handleBack = () => {
             if (currentImageIndex > 0) {
@@ -404,6 +409,45 @@ function HImageEditorClient() {
                 {!editor.isOnline && <HAlertInternetBox />}
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
+
+                {editor.displayedToken && (
+                    <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: 'grey.900' }}>
+                        <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>Test Mobile Token & Image ID</Typography>
+                        <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
+                            <input
+                                type="text"
+                                placeholder="Image ID"
+                                value={testImageId}
+                                onChange={e => setTestImageId(e.target.value)}
+                                style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #444', background: '#222', color: '#fff' }}
+                            />
+                        </Stack>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={async () => {
+                                setTestLoading(true);
+                                setTestResult(null);
+                                try {
+                                    const url = await exposeController.onGetImage(testImageId);
+                                    setTestResult(url ? `Success! Image URL: ${url}` : 'No image found or invalid token/image ID.');
+                                } catch (err) {
+                                    setTestResult('Error: ' + (err instanceof Error ? err.message : String(err)));
+                                }
+                                setTestLoading(false);
+                            }}
+                            disabled={testLoading || !testImageId}
+                            sx={{ mt: 1 }}
+                        >
+                            {testLoading ? 'Checking...' : 'Check Image'}
+                        </Button>
+                        {testResult && (
+                            <Typography variant="body2" sx={{ mt: 2, color: testResult.startsWith('Success') ? 'lightgreen' : 'red' }}>
+                                {testResult}
+                            </Typography>
+                        )}
+                    </Box>
+                )}
 
                 <HHeaderEditor
                     onBack={editor.handleBack}
