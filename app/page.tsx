@@ -54,15 +54,15 @@ import type {
 
 declare global {
     interface Window {
-        onReceiveToken?: (token: string, userUid: string) => void;
+        onReceiveToken?: (token: string, firebaseUid: string) => void;
     }
 }
 
 if (typeof window !== "undefined") {
-    window.onReceiveToken = (token: string, userUid: string) => {
+    window.onReceiveToken = (token: string, firebaseUid: string) => {
         console.log("[DEBUG] window.onReceiveToken called");
         console.log("Token:", token);
-        console.log("UserUid:", userUid);
+        console.log("firebaseUid:", firebaseUid);
     };
 }
 
@@ -83,7 +83,12 @@ const exposeController: Controller = {
         const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
 
         let token: string | null = null;
-        let userUid: string = ""; // Get this from your URL or other logic
+        let firebaseUid: string = "";
+
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            firebaseUid = params.get("firebaseuid") || "";
+        }
 
         if (isMobile) {
             // Get token from native only
@@ -116,15 +121,25 @@ const exposeController: Controller = {
                 console.error("onGetToken error:", err);
                 return null;
             }
+            // If not set from URL, extract from token
+            if (!firebaseUid && token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    firebaseUid = payload.user_id || payload.firebaseUid || payload.sub || "";
+                } catch (err) {
+                    console.error("Failed to extract firebase UID from token:", err);
+                    firebaseUid = "";
+                }
+            }
         }
 
         // Use GalleryServiceImpl for both web and mobile
-        const galleryService = new GalleryServiceImpl(apiV3, userUid);
+        const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
 
         try {
             // For mobile: pass token, for web: pass empty string
             const observable = galleryService.getGallery(token ?? "", 1, imageID);
-            const galleryPage = await firstValueFrom(observable); // or firstValueFrom(observable) if using RxJS 7+
+            const galleryPage = await firstValueFrom(observable);
             const gallery = galleryPage.gallery?.[0];
             if (!gallery) throw new Error("No gallery found in response");
 
@@ -134,6 +149,7 @@ const exposeController: Controller = {
             return null;
         }
     },
+    // ...existing code...
 
     handleBack: () => {
         // TODO : Parameter image id latest
