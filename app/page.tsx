@@ -207,6 +207,12 @@ function HImageEditorClient() {
         }
     }, []);
 
+    useEffect(() => {
+        if (initImageId) {
+            setCurrentImageId(initImageId);
+        }
+    }, [initImageId]);
+
     // ✅ FIX: Depend on the specific function `loadImageFromId`
     useEffect(() => {
         if (imageId && firebaseId && loadImageFromId) {
