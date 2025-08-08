@@ -140,7 +140,7 @@ const exposeController: Controller = {
             (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${currentImageId}`);
         } 
         // Android: Call a new, specific function with the image ID
-        else if ((window as any).Android?.goBackWithImageId) {
+        else if ((window as any).Android?.goBack) {
             console.log(`Sending imageId '${currentImageId}' to Android native handler.`);
             (window as any).Android.goBack(currentImageId);
         }
