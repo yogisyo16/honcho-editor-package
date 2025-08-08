@@ -80,9 +80,7 @@ const hasAdjustments = (state: AdjustmentState): boolean => {
 const onGetToken = () => new Promise<string>((resolve, reject) => {
     // iOS
     if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-        (window as any).webkit.messageHandlers.nativeHandler.postMessage(
-            JSON.stringify({ type: "getToken" })
-        );
+        (window as any).webkit.messageHandlers.nativeHandler.postMessage("getToken");
         (window as any).onReceiveToken = (token: string) => {
             resolve(token);
         };
@@ -133,7 +131,7 @@ const exposeController: Controller = {
         }
     },
     handleBack: (firebaseUid: string) => {
-        // call native function
+        
     },
     getImageList: async (firebaseUid: string) => [],
     syncConfig: async (firebaseUid: string) => {},
@@ -161,14 +159,17 @@ function HImageEditorClient() {
     const [isPrevHovered, setIsPrevHovered] = useState(false);
     const [isNextHovered, setIsNextHovered] = useState(false);
 
-    const [testToken, setTestToken] = useState('');
-    const [testImageId, setTestImageId] = useState('');
+    const [testFirebaseId, setTestFirebaseId] = useState<string>("");
+    const [testImageId, setTestImageId] = useState<string>("");
     const [testResult, setTestResult] = useState<string | null>(null);
     const [testLoading, setTestLoading] = useState(false);
 
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
+
+    // UI just for checking
+    
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -185,6 +186,12 @@ function HImageEditorClient() {
             editor.loadImageFromId(firebaseId, imageId);
         }
     }, [imageId, firebaseId, editor]);
+
+    useEffect(() => {
+        if (firebaseId && editor && editor.handleBackCallback) {
+            editor.handleBackCallback();
+        }
+    })
 
     // console.log(editor.)
 
@@ -381,44 +388,50 @@ function HImageEditorClient() {
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
 
-                {/* {editor.displayedToken && (
-                    <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: 'grey.900' }}>
-                        <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>Test Mobile Token & Image ID</Typography>
-                        <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
-                            <input
-                                type="text"
-                                placeholder="Image ID"
-                                value={testImageId}
-                                onChange={e => setTestImageId(e.target.value)}
-                                style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #444', background: '#222', color: '#fff' }}
-                            />
-                        </Stack>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={async () => {
-                                setTestLoading(true);
-                                setTestResult(null);
-                                try {
-                                    const url = await editor.onGetImage(testImageId);
-                                    setTestResult(url ? `Success! Image URL: ${url}` : 'No image found or invalid token/image ID.');
-                                } catch (err) {
-                                    setTestResult('Error: ' + (err instanceof Error ? err.message : String(err)));
-                                }
-                                setTestLoading(false);
-                            }}
-                            disabled={testLoading || !testImageId}
-                            sx={{ mt: 1 }}
-                        >
-                            {testLoading ? 'Checking...' : 'Check Image'}
-                        </Button>
-                        {testResult && (
-                            <Typography variant="body2" sx={{ mt: 2, color: testResult.startsWith('Success') ? 'lightgreen' : 'red' }}>
-                                {testResult}
-                            </Typography>
-                        )}
-                    </Box>
-                )} */}
+                <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: '#222', mx: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>
+                        Test onGetImage Function
+                    </Typography>
+                    <Stack spacing={1}>
+                        <input
+                            type="text"
+                            placeholder="Firebase UID"
+                            value={testFirebaseId}
+                            onChange={e => setTestFirebaseId(e.target.value)}
+                            style={{ padding: 8, borderRadius: 4, border: '1px solid #444', background: '#333', color: '#fff' }}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Image ID"
+                            value={testImageId}
+                            onChange={e => setTestImageId(e.target.value)}
+                            style={{ padding: 8, borderRadius: 4, border: '1px solid #444', background: '#333', color: '#fff' }}
+                        />
+                    </Stack>
+                    <Button
+                        variant="contained"
+                        onClick={async () => {
+                            setTestLoading(true);
+                            setTestResult(null);
+                            try {
+                                const url = await exposeController.onGetImage(testFirebaseId, testImageId);
+                                setTestResult(url ? `✅ Success! URL: ${url}` : '❌ No URL returned.');
+                            } catch (err) {
+                                setTestResult(`❌ Error: ${err instanceof Error ? err.message : String(err)}`);
+                            }
+                            setTestLoading(false);
+                        }}
+                        disabled={testLoading || !testFirebaseId || !testImageId}
+                        sx={{ mt: 2 }}
+                    >
+                        {testLoading ? 'Checking...' : 'Check Image'}
+                    </Button>
+                    {testResult && (
+                        <Typography variant="body2" sx={{ mt: 2, color: testResult.startsWith('✅') ? 'lightgreen' : 'red', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                            {testResult}
+                        </Typography>
+                    )}
+                </Box>
 
                 <HHeaderEditor
                     onBack={editor.handleBackCallback}
