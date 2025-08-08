@@ -130,18 +130,26 @@ const exposeController: Controller = {
             throw new Error("can't call in PC must be in mobile");
         }
     },
-    handleBack: (firebaseUid: string) => {
+    handleBack: (firebaseUid: string, currentImageId: string) => {
+        if (!currentImageId) {
+            console.warn("handleBack called without a currentImageId. Performing standard back action.");
+            window.history.back();
+            return;
+        }
+
+        // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
-            console.log("Sent 'back' message to iOS native handler.");
+            console.log(`Sending imageId '${currentImageId}' to iOS native handler.`);
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage(currentImageId);
         } 
-        else if ((window as any).Android?.goBack) {
-            console.log("Android environment detected. Calling goBack().");
-            (window as any).Android.goBack();
+        // Android: Call a new, specific function with the image ID
+        else if ((window as any).Android?.goBackWithImageId) {
+            console.log(`Sending imageId '${currentImageId}' to Android native handler.`);
+            (window as any).Android.goBackWithImageId(currentImageId);
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
-            window.history.back(); /// sudden go back now
+            window.history.back();
         }
     },
     getImageList: async (firebaseUid: string) => [],
@@ -217,10 +225,10 @@ function HImageEditorClient() {
         // Threshold for swipe (adjust as needed)
         if (deltaX > 50) {
             // Swipe right: previous image
-            editor.handlePrev;
+            editor.handlePrev(firebaseId);
         } else if (deltaX < -50) {
             // Swipe left: next image
-            editor.handleNext;
+            editor.handleNext(firebaseId);
         }
         touchStartX.current = null;
     };
