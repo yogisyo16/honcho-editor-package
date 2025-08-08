@@ -141,7 +141,7 @@ const exposeController: Controller = {
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
-            window.history.back();
+            window.history.back(); /// sudden go back now
         }
     },
     getImageList: async (firebaseUid: string) => [],
@@ -197,13 +197,6 @@ function HImageEditorClient() {
             loadImageFromId(firebaseId, imageId);
         }
     }, [imageId, firebaseId, loadImageFromId]);
-
-    // ✅ FIX: Depend on the specific function `handleBackCallback`
-    useEffect(() => {
-        if (firebaseId && handleBackCallback) {
-            handleBackCallback(); // this one i don't know if it works
-        }
-    }, [firebaseId, handleBackCallback]);
 
     // console.log(editor.)
 
