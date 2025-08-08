@@ -149,13 +149,24 @@ const exposeController: Controller = {
             window.history.back();
         }
     },
-    getImageList: async (firebaseUid: string) => [],
-    syncConfig: async (firebaseUid: string) => {},
-    getPresets: async (firebaseUid: string) => [],
+    getImageList: async (firebaseUid: string) => {
+        console.log("getImageList called")
+        return [];
+    },
+    syncConfig: async (firebaseUid: string) => {
+        console.log("syncConfig called")
+    },
+    getPresets: async (firebaseUid: string) => {
+        console.log("getPresets called")
+        return [];
+    },
     createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState) => {
+        console.log("createPreset called")
         return {} as Preset;
     },
-    deletePreset: async (firebaseUid: string, presetId: string) => {},
+    deletePreset: async (firebaseUid: string, presetId: string) => {
+        console.log("deletePreset called")
+    },
 };
 
 if (typeof window !== 'undefined') { (window as any).debugController = exposeController; }
