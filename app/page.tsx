@@ -137,7 +137,7 @@ const exposeController: Controller = {
         // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
             console.log(`Sending imageId '${currentImageId}' to iOS native handler.`);
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage(currentImageId);
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${currentImageId}`);
         } 
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBackWithImageId) {
