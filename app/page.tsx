@@ -89,6 +89,7 @@ const onGetToken = () => new Promise<string>((resolve, reject) => {
     else if ((window as any).Android?.getToken) {
         try {
             const token: string = (window as any).Android.getToken();
+            console.log("[onGetToken] Received token from native:", token);
             resolve(token);
         } catch (err) {
             reject("Android getToken failed");
