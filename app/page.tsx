@@ -132,11 +132,7 @@ const exposeController: Controller = {
         }
     },
     handleBack: (firebaseUid: string, currentImageId: string) => {
-        if (!currentImageId) {
-            console.warn("handleBack called without a currentImageId. Performing standard back action.");
-            window.history.back();
-            return;
-        }
+        console.log("FireBaseUid:", firebaseUid, "CurrentImageId:", currentImageId);
 
         // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
