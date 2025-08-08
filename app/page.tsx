@@ -142,7 +142,7 @@ const exposeController: Controller = {
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBackWithImageId) {
             console.log(`Sending imageId '${currentImageId}' to Android native handler.`);
-            (window as any).Android.goBackWithImageId(currentImageId);
+            (window as any).Android.goBack(currentImageId);
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
