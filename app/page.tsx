@@ -159,6 +159,7 @@ function HImageEditorClient() {
     const [isPrevHovered, setIsPrevHovered] = useState(false);
     const [isNextHovered, setIsNextHovered] = useState(false);
 
+    // UI for checking
     const [testFirebaseId, setTestFirebaseId] = useState<string>("");
     const [testImageId, setTestImageId] = useState<string>("");
     const [testResult, setTestResult] = useState<string | null>(null);
@@ -167,9 +168,7 @@ function HImageEditorClient() {
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
-
-    // UI just for checking
-    
+    const { loadImageFromId, handleBackCallback } = editor || {};
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -181,17 +180,19 @@ function HImageEditorClient() {
         }
     }, []);
 
+    // ✅ FIX: Depend on the specific function `loadImageFromId`
     useEffect(() => {
-        if (imageId && firebaseId && editor && editor.loadImageFromId) {
-            editor.loadImageFromId(firebaseId, imageId);
+        if (imageId && firebaseId && loadImageFromId) {
+            loadImageFromId(firebaseId, imageId);
         }
-    }, [imageId, firebaseId, editor]);
+    }, [imageId, firebaseId, loadImageFromId]);
 
+    // ✅ FIX: Depend on the specific function `handleBackCallback`
     useEffect(() => {
-        if (firebaseId && editor && editor.handleBackCallback) {
-            editor.handleBackCallback();
+        if (firebaseId && handleBackCallback) {
+            handleBackCallback(); // this one i don't know if it works
         }
-    }, [firebaseId, editor]);
+    }, [firebaseId, handleBackCallback]);
 
     // console.log(editor.)
 
@@ -388,7 +389,7 @@ function HImageEditorClient() {
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
 
-                <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: '#222', mx: 2 }}>
+                {/* <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: '#222', mx: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>
                         Test onGetImage Function
                     </Typography>
@@ -431,7 +432,7 @@ function HImageEditorClient() {
                             {testResult}
                         </Typography>
                     )}
-                </Box>
+                </Box> */}
 
                 <HHeaderEditor
                     onBack={editor.handleBackCallback}
