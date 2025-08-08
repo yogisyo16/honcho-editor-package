@@ -173,8 +173,8 @@ function HImageEditorClient() {
     useEffect(() => {
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
-            const imageIdFromUrl = params.get("imageId");
-            const firebaseUidFromUrl = params.get("firebaseuid");
+            const imageIdFromUrl = params.get("imageID");
+            const firebaseUidFromUrl = params.get("firebaseUID");
             if (imageIdFromUrl) setimageId(imageIdFromUrl);
             if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
         }
