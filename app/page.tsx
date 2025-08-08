@@ -191,7 +191,7 @@ function HImageEditorClient() {
         if (firebaseId && editor && editor.handleBackCallback) {
             editor.handleBackCallback();
         }
-    }, [imageId, firebaseId, editor]);
+    }, [firebaseId, editor]);
 
     // console.log(editor.)
 
