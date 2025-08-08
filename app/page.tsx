@@ -131,7 +131,18 @@ const exposeController: Controller = {
         }
     },
     handleBack: (firebaseUid: string) => {
-        
+        if ((window as any).webkit?.messageHandlers?.nativeHandler) {
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage("back");
+            console.log("Sent 'back' message to iOS native handler.");
+        } 
+        else if ((window as any).Android?.goBack) {
+            console.log("Android environment detected. Calling goBack().");
+            (window as any).Android.goBack();
+        }
+        else {
+            console.log("Standard web browser detected. Navigating back in history.");
+            window.history.back();
+        }
     },
     getImageList: async (firebaseUid: string) => [],
     syncConfig: async (firebaseUid: string) => {},
