@@ -402,7 +402,7 @@ function HImageEditorClient() {
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
 
-                {/* <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: '#222', mx: 2 }}>
+                <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: '#222', mx: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>
                         Test onGetImage Function
                     </Typography>
@@ -445,7 +445,7 @@ function HImageEditorClient() {
                             {testResult}
                         </Typography>
                     )}
-                </Box> */}
+                </Box>
 
                 <HHeaderEditor
                     onBack={editor.handleBackCallback}
