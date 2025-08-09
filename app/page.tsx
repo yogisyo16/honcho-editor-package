@@ -107,12 +107,15 @@ const exposeController: Controller = {
 
         if (isMobile) {
             // Get token from native only
-            const token = await onGetToken().catch(console.error);
+            const token = await onGetToken().catch(err => {
+                console.error(err);
+                // Re-throw a more specific error if token fetching fails
+                throw new Error("Failed to get authentication token from native app."); 
+            });
 
             if (!token) {
-                throw new Error("token failed to get");
+                throw new Error("Authentication token is missing.");
             }
-
             // Use GalleryServiceImpl for both web and mobile
             const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
 
@@ -124,7 +127,8 @@ const exposeController: Controller = {
                 return result;
             } catch (err) {
                 console.error("onGetImage error:", err);
-                throw new Error("No gallery found in response");
+                // throw new Error("No gallery found in response");
+                throw err;
             }
         } else {
             console.warn("failed to get token cause this pc");
