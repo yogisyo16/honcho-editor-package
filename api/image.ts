@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { Readable } from 'stream';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -19,14 +20,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const contentType = response.headers.get('content-type');
-    const buffer = await response.arrayBuffer();
-
-    // Set appropriate headers
-    res.setHeader('Content-Type', contentType || 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow CORS
     
-    return res.send(Buffer.from(buffer));
+    // ✅ FIX: Stream the response instead of buffering it
+    if (response.body) {
+      res.setHeader('Content-Type', contentType || 'application/octet-stream');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      
+      const readableStream = Readable.fromWeb(response.body as any);
+      readableStream.pipe(res);
+    } else {
+      return res.status(500).json({ message: 'Image response has no body' });
+    }
   } catch (error) {
     console.error('Error fetching image:', error);
     return res.status(500).json({ message: 'Internal server error' });
