@@ -231,10 +231,10 @@ function HImageEditorClient() {
         const touchEndX = e.changedTouches[0].clientX;
         const deltaX = touchEndX - touchStartX.current;
         // Threshold for swipe (adjust as needed)
-        if (deltaX > 50) {
+        if (deltaX > 10) {
             // Swipe right: previous image
             editor.handlePrev(firebaseId);
-        } else if (deltaX < -50) {
+        } else if (deltaX < -10) {
             // Swipe left: next image
             editor.handleNext(firebaseId);
         }
