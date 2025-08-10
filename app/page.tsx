@@ -199,7 +199,8 @@ function HImageEditorClient() {
 
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
-    const editor = useHonchoEditor(exposeController, imageId, firebaseId);
+    const [eventId, setEventId] = useState<string>("");
+    const editor = useHonchoEditor(exposeController, imageId, firebaseId, eventId);
     const { loadImageFromId, handleBackCallback } = editor || {};
 
     useEffect(() => {
@@ -207,8 +208,10 @@ function HImageEditorClient() {
             const params = new URLSearchParams(window.location.search);
             const imageIdFromUrl = params.get("imageID");
             const firebaseUidFromUrl = params.get("firebaseUID");
+            const eventIdFromUrl = params.get("eventID"); // ✅ Get eventId from URL
             if (imageIdFromUrl) setimageId(imageIdFromUrl);
             if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
+            if (eventIdFromUrl) setEventId(eventIdFromUrl); // ✅ Set eventId state
         }
     }, []);
 
@@ -236,10 +239,10 @@ function HImageEditorClient() {
         const touchEndX = e.changedTouches[0].clientX;
         const deltaX = touchEndX - touchStartX.current;
         // Threshold for swipe (adjust as needed)
-        if (deltaX > 10) {
+        if (deltaX > 20) {
             // Swipe right: previous image
             editor.handlePrev(firebaseId);
-        } else if (deltaX < -10) {
+        } else if (deltaX < -20) {
             // Swipe left: next image
             editor.handleNext(firebaseId);
         }
