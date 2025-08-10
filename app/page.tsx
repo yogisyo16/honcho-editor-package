@@ -155,6 +155,7 @@ const exposeController: Controller = {
     },
     getImageList: async (firebaseUid: string) => {
         console.log("getImageList called")
+        // for next prev
         return [];
     },
     syncConfig: async (firebaseUid: string) => {
