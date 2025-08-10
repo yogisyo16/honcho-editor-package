@@ -153,9 +153,24 @@ const exposeController: Controller = {
             window.history.back();
         }
     },
-    getImageList: async (firebaseUid: string) => {
-        console.log("getImageList called")
-        // for next prev
+    getImageList: async (firebaseUid: string, eventId: string) => {
+        console.log("getImageList called with eventId:", eventId);
+        const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
+
+        if (isMobile) {
+            const token = await onGetToken();
+            const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
+            try {
+                // We will create getGalleryList in the next step.
+                // Assuming the first page contains all images for simplicity, or fetch all pages.
+                const response = await firstValueFrom(galleryService.getGallery(token, 1, eventId));
+                console.log("Fetched image list:", response.gallery);
+                return response.gallery; // Return the array of Gallery objects
+            } catch (err) {
+                console.error("Failed to get image list:", err);
+                return [];
+            }
+        }
         return [];
     },
     syncConfig: async (firebaseUid: string) => {
