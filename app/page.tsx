@@ -231,12 +231,12 @@ function HImageEditorClient() {
         }
     }, []);
 
-    // ✅ FIX: Depend on the specific function `loadImageFromId`
-    useEffect(() => {
-        if (imageId && firebaseId && loadImageFromId) {
-            loadImageFromId(firebaseId, imageId);
-        }
-    }, [imageId, firebaseId, loadImageFromId]);
+    // // ✅ FIX: Depend on the specific function `loadImageFromId`
+    // useEffect(() => {
+    //     if (imageId && firebaseId && loadImageFromId) {
+    //         loadImageFromId(firebaseId, imageId);
+    //     }
+    // }, [imageId, firebaseId, loadImageFromId]);
 
     // console.log(editor.)
 
