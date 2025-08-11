@@ -225,6 +225,7 @@ function HImageEditorClient() {
             const imageIdFromUrl = params.get("imageID");
             const firebaseUidFromUrl = params.get("firebaseUID");
             const eventIdFromUrl = params.get("eventID"); // ✅ Get eventId from URL
+            console.log("Reading from URL -> eventID found:", eventIdFromUrl);
             if (imageIdFromUrl) setimageId(imageIdFromUrl);
             if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
             if (eventIdFromUrl) setEventId(eventIdFromUrl); // ✅ Set eventId state
