@@ -140,6 +140,7 @@ const exposeController: Controller = {
             token = await onGetToken();
         } else {
             console.warn("Running in WEB mode. Using dummy token for testing.");
+            // ✅ REPLACE THIS WITH YOUR ACTUAL TEST TOKEN
             token = "67ee6b55b8e4273707f68978";
         }
         // --- END WEB TESTING SETUP ---
@@ -216,8 +217,7 @@ function HImageEditorClient() {
 
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
-    const [eventId, setEventId] = useState<string>("");
-    const editor = useHonchoEditor(exposeController, imageId, firebaseId, eventId);
+    const editor = useHonchoEditor(exposeController, imageId, firebaseId);
     const { loadImageFromId, handleBackCallback } = editor || {};
 
     useEffect(() => {
@@ -225,11 +225,8 @@ function HImageEditorClient() {
             const params = new URLSearchParams(window.location.search);
             const imageIdFromUrl = params.get("imageID");
             const firebaseUidFromUrl = params.get("firebaseUID");
-            const eventIdFromUrl = params.get("eventID"); // ✅ Get eventId from URL
-            console.log("Reading from URL -> eventID found:", eventIdFromUrl);
             if (imageIdFromUrl) setimageId(imageIdFromUrl);
             if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
-            if (eventIdFromUrl) setEventId(eventIdFromUrl); // ✅ Set eventId state
         }
     }, []);
 
