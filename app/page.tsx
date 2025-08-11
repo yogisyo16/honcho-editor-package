@@ -102,59 +102,60 @@ const onGetToken = () => new Promise<string>((resolve, reject) => {
 
 const exposeController: Controller = {
     onGetImage: async (firebaseUid: string, imageID: string) => {
-        console.debug("on Get Image called");
+        console.debug("onGetImage called");
         const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
+        let token: string;
 
+        // --- WEB TESTING SETUP ---
         if (isMobile) {
-            // Get token from native only
-            const token = await onGetToken().catch(err => {
-                console.error(err);
-                // Re-throw a more specific error if token fetching fails
-                throw new Error("Failed to get authentication token from native app."); 
-            });
-
-            if (!token) {
-                throw new Error("Authentication token is missing.");
-            }
-            // Use GalleryServiceImpl for both web and mobile
-            const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
-
-            try {
-                // For mobile: pass token, for web: pass empty string
-                const result = await firstValueFrom(galleryService.getImageById(token, imageID));
-                if (!result) throw new Error("No gallery found in response");
-
-                return result;
-            } catch (err) {
-                console.error("onGetImage error:", err);
-                // throw new Error("No gallery found in response");
-                throw err;
-            }
+            token = await onGetToken();
         } else {
-            console.warn("failed to get token cause this pc");
-            throw new Error("can't call in PC must be in mobile");
+            console.warn("Running in WEB mode. Using dummy token for testing.");
+            // ✅ REPLACE THIS WITH YOUR ACTUAL TEST TOKEN
+            token = "67ee6b55b8e4273707f68978"; 
+        }
+        // --- END WEB TESTING SETUP ---
+
+        if (!token) {
+            throw new Error("Authentication token is missing.");
+        }
+        
+        const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
+        try {
+            const result = await firstValueFrom(galleryService.getImageById(token, imageID));
+            if (!result) throw new Error("No gallery found in response");
+            return result;
+        } catch (err) {
+            console.error("onGetImage error:", err);
+            throw err;
         }
     },
     getImageList: async (firebaseUid: string, eventId: string, page: number) => {
         console.log(`Controller fetching image list for event: ${eventId}, page: ${page}`);
         const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
+        let token: string;
 
+        // --- WEB TESTING SETUP ---
         if (isMobile) {
-            const token = await onGetToken();
-            const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
-            try {
-                // Pass the 'page' variable to the service call
-                const response = await firstValueFrom(galleryService.getGallery(token, page, eventId));
-                
-                // Return the entire response object so the hook can see pagination details
-                return response;
-            } catch (err) {
-                console.error("Failed to get image list:", err);
-                // Return a default structure on error to prevent crashes
-                return { gallery: [], current_page: 1, next_page: 0, limit: 0, prev_page: 0 };
-            }
+            token = await onGetToken();
+        } else {
+            console.warn("Running in WEB mode. Using dummy token for testing.");
+            token = "67ee6b55b8e4273707f68978";
         }
-        return { gallery: [], current_page: 1, next_page: 0, limit: 0, prev_page: 0 };
+        // --- END WEB TESTING SETUP ---
+
+        if (!token) {
+            throw new Error("Authentication token is missing.");
+        }
+
+        const galleryService = new GalleryServiceImpl(apiV3, firebaseUid);
+        try {
+            const response = await firstValueFrom(galleryService.getGallery(token, page, eventId));
+            return response;
+        } catch (err) {
+            console.error("Failed to get image list:", err);
+            return { gallery: [], current_page: 1, next_page: 0, limit: 0, prev_page: 0 };
+        }
     },
     handleBack: (firebaseUid: string, currentImageId: string) => {
         console.log("FireBaseUid:", firebaseUid, "CurrentImageId:", currentImageId);
