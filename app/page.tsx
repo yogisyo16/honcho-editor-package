@@ -36,7 +36,6 @@ import {
 
     // Theme & Utility Hooks
     useColors,
-    useHonchoTypography,
     useIsMobile
 } from '@yogiswara/honcho-editor-ui';
 
@@ -44,7 +43,6 @@ import type {
     Controller,
     AdjustmentState,
     Preset,
-    ImageItem
 } from '@yogiswara/honcho-editor-ui';
 
 declare global {
@@ -60,16 +58,6 @@ if (typeof window !== "undefined") {
         console.log("firebaseUid:", firebaseUid);
     };
 }
-
-const initialAdjustments: AdjustmentState = {
-    tempScore: 0, tintScore: 0, vibranceScore: 0, exposureScore: 0, highlightsScore: 0, shadowsScore: 0,
-    whitesScore: 0, blacksScore: 0, saturationScore: 0, contrastScore: 0, clarityScore: 0, sharpnessScore: 0,
-};
-
-const hasAdjustments = (state: AdjustmentState): boolean => {
-    if (!state) return false;
-    return Object.values(state).some(value => value !== 0);
-};
 
 const onGetToken = () => new Promise<string>((resolve, reject) => {
     // iOS
@@ -200,24 +188,15 @@ function HImageEditorClient() {
     // Pass imageId to useHonchoEditor as initialImageId (if your hook supports it)
     const colors = useColors();
     const isMobile = useIsMobile();
-    
-    const useControllerRef = useRef<Controller>();
-
-    const [displayedToken, setDisplayedToken] = useState<string | null>(null);
-    const [displayedImageId, setDisplayedImageId] = useState<string | null>(null);
 
     const [isPrevHovered, setIsPrevHovered] = useState(false);
     const [isNextHovered, setIsNextHovered] = useState(false);
 
-    // UI for checking
-    const [testFirebaseId, setTestFirebaseId] = useState<string>("");
-    const [testImageId, setTestImageId] = useState<string>("");
-    const [testResult, setTestResult] = useState<string | null>(null);
-    const [testLoading, setTestLoading] = useState(false);
+    const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const isLongPressActiveRef = useRef<boolean>(false);
 
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
-    const [eventId, setEventId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
 
     useEffect(() => {
@@ -230,9 +209,6 @@ function HImageEditorClient() {
         }
     }, []);
 
-    // console.log(editor.)
-
-    // Dummy/placeholder handlers that remain in the component
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
 
@@ -240,9 +216,34 @@ function HImageEditorClient() {
 
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
         touchStartX.current = e.touches[0].clientX;
+
+        isLongPressActiveRef.current = false; // Reset on new touch
+
+        longPressTimerRef.current = setTimeout(() => {
+            editor.handleShowOriginal();
+            isLongPressActiveRef.current = true;
+        }, 500);
+    };
+
+    const handleTouchMove = () => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+        }
     };
 
     const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+        }
+
+        // If the long press was activated, show the edited image again and stop.
+        if (isLongPressActiveRef.current) {
+            editor.handleShowEdited();
+            isLongPressActiveRef.current = false;
+            return; // Prevents swipe logic from firing
+        }
+
+        
         if (touchStartX.current === null) return;
         const touchEndX = e.changedTouches[0].clientX;
         const deltaX = touchEndX - touchStartX.current;
@@ -387,74 +388,75 @@ function HImageEditorClient() {
                                         alignItems: 'center'
                                     }}
                                     onTouchStart={handleTouchStart}
+                                    onTouchMove={handleTouchMove}
                                     onTouchEnd={handleTouchEnd}>
                                     <canvas
                                         ref={editor.canvasRef}
                                         style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
                                     />
-                                    <Button
-                                        size="medium"
-                                        sx={{
-                                            position: 'absolute',
-                                            top: '50%',
-                                            left: isMobile ? 10 : 200,
-                                            transform: 'translateY(-50%)',
-                                            zIndex: 2,
-                                            minWidth: 0,
-                                            borderRadius: '50%',
-                                            width: 40,
-                                            height: 40,
-                                            padding: 0,
-                                            opacity: 1, // Only visible on hover
-                                            transition: 'opacity 0.4s',
-                                            backgroundColor: colors.onBackground,
-                                            color: colors.surface,
-                                            '&:hover': {
-                                                backgroundColor: colors.onBackground,
-                                            }
-                                        }}
-                                        onClick={() => editor.onSwipePrev()}
-                                        onMouseEnter={() => setIsPrevHovered(true)}
-                                        onMouseLeave={() => setIsPrevHovered(false)}
-                                        aria-label="Previous Image"
-                                    >
-                                        <ArrowBackIosNewIcon fontSize="small" />
-                                    </Button>
-
-                                    {/* Next Button */}
-                                    <Button
-                                        size="medium"
-                                        sx={{
-                                            position: 'absolute',
-                                            top: '50%',
-                                            right: isMobile ? 10 : 200,
-                                            transform: 'translateY(-50%)',
-                                            zIndex: 2,
-                                            minWidth: 0,
-                                            borderRadius: '50%',
-                                            width: '48px',
-                                            height: '48px',
-                                            padding: 0,
-                                            opacity: 1, // Only visible on hover
-                                            transition: 'opacity 0.4s',
-                                            backgroundColor: colors.onBackground,
-                                            color: colors.surface,
-                                            '&:hover': {
-                                                backgroundColor: colors.onBackground,
-                                            }
-                                        }}
-                                        onClick={() => editor.onSwipeNext()}
-                                        onMouseEnter={() => setIsNextHovered(true)}
-                                        onMouseLeave={() => setIsNextHovered(false)}
-                                        aria-label="Next Image"
-                                    >
-                                        <ArrowForwardIosIcon fontSize="small" />
-                                    </Button>
-                                    {/* {!isMobile && (
+                                    {!isMobile && (
                                         <>
+                                            <Button
+                                                size="medium"
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: '50%',
+                                                    left: isMobile ? 10 : 200,
+                                                    transform: 'translateY(-50%)',
+                                                    zIndex: 2,
+                                                    minWidth: 0,
+                                                    borderRadius: '50%',
+                                                    width: 40,
+                                                    height: 40,
+                                                    padding: 0,
+                                                    opacity: isPrevHovered ? 1 : 0, // Only visible on hover
+                                                    transition: 'opacity 0.4s',
+                                                    backgroundColor: colors.onBackground,
+                                                    color: colors.surface,
+                                                    '&:hover': {
+                                                        backgroundColor: colors.onBackground,
+                                                    }
+                                                }}
+                                                onClick={() => editor.onSwipePrev()}
+                                                onMouseEnter={() => setIsPrevHovered(true)}
+                                                onMouseLeave={() => setIsPrevHovered(false)}
+                                                aria-label="Previous Image"
+                                            >
+                                                <ArrowBackIosNewIcon fontSize="small" />
+                                            </Button>
+
+                                            {/* Next Button */}
+                                            <Button
+                                                size="medium"
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: '50%',
+                                                    right: isMobile ? 10 : 200,
+                                                    transform: 'translateY(-50%)',
+                                                    zIndex: 2,
+                                                    minWidth: 0,
+                                                    borderRadius: '50%',
+                                                    width: '48px',
+                                                    height: '48px',
+                                                    padding: 0,
+                                                    opacity: isNextHovered ? 1 : 0, // Only visible on hover
+                                                    transition: 'opacity 0.4s',
+                                                    backgroundColor: colors.onBackground,
+                                                    color: colors.surface,
+                                                    '&:hover': {
+                                                        backgroundColor: colors.onBackground,
+                                                    }
+                                                }}
+                                                onClick={() => editor.onSwipeNext()}
+                                                onMouseEnter={() => setIsNextHovered(true)}
+                                                onMouseLeave={() => setIsNextHovered(false)}
+                                                aria-label="Next Image"
+                                            >
+                                                <ArrowForwardIosIcon fontSize="small" />
+                                            </Button>
                                             
                                         </>
-                                    )} */}
+                                    )}
                                 </Box>
                             )
                         )}
@@ -474,8 +476,8 @@ function HImageEditorClient() {
                                 <HFooter
                                     anchorElZoom={editor.anchorMenuZoom}
                                     onScale={(event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget)}
-                                    // onShowOriginal={editor.handleShowOriginal}
-                                    // onShowEdited={editor.handleShowEdited}
+                                    onShowOriginal={editor.handleShowOriginal}
+                                    onShowEdited={editor.handleShowEdited}
                                     onZoomMenuClose={() => editor.setAnchorMenuZoom(null)}
                                     onZoomAction={editor.handleZoomAction}
                                     zoomLevelText={editor.zoomLevelText} 
