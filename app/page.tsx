@@ -397,7 +397,7 @@ function HImageEditorClient() {
                                         sx={{
                                             position: 'absolute',
                                             top: '50%',
-                                            left: 200,
+                                            left: isMobile ? 10 : 200,
                                             transform: 'translateY(-50%)',
                                             zIndex: 2,
                                             minWidth: 0,
@@ -427,7 +427,7 @@ function HImageEditorClient() {
                                         sx={{
                                             position: 'absolute',
                                             top: '50%',
-                                            right: 200,
+                                            right: isMobile ? 10 : 200,
                                             transform: 'translateY(-50%)',
                                             zIndex: 2,
                                             minWidth: 0,
