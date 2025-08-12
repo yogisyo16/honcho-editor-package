@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef, Suspense, useCallback } from "react";
-import { Box, Stack, CircularProgress, Typography, Checkbox, Paper, Button } from "@mui/material";
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { Box, Stack, CircularProgress, Typography, Button } from "@mui/material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Script from 'next/script';
-import { Gallery, ResponseGalleryPaging } from "@/types";
+import { ResponseGalleryPaging } from "@/types";
 import { GalleryServiceImpl } from "@/services/gallery/gallery";
 import { apiV3 } from "@/services/commons/base";
 import { firstValueFrom } from "rxjs";
@@ -25,13 +24,8 @@ import {
     HDialogPreset,
     HImageEditorMobile,
     HImageEditorDesktop,
-    HImageEditorBulkDekstop,
-    HImageEditorBulkMobile,
-    HBulkAccordionColorAdjustment,
-    HBulkPreset,
     HModalEditorDekstop,
     HTextField,
-    HTextFieldRename,
     HWatermarkView,
     HModalMobile,
     HPresetOptionsMenu,
@@ -263,93 +257,6 @@ function HImageEditorClient() {
         touchStartX.current = null;
     };
 
-
-    // const renderActivePanelBulk = () => {
-    //     // MARK: Dekstop Bulk Editor panels
-    //     switch (editor.activePanel) {
-    //         case 'colorAdjustment':
-    //             return (
-    //                 <HBulkAccordionColorAdjustment
-    //                     // Adjustments Colors
-    //                     onTempDecreaseMax={editor.handleBulkTempDecreaseMax}
-    //                     onTempDecrease={editor.handleBulkTempDecrease}
-    //                     onTempIncrease={editor.handleBulkTempIncrease}
-    //                     onTempIncreaseMax={editor.handleBulkTempIncreaseMax}
-    //                     onTintDecreaseMax={editor.handleBulkTintDecreaseMax}
-    //                     onTintDecrease={editor.handleBulkTintDecrease}
-    //                     onTintIncrease={editor.handleBulkTintIncrease}
-    //                     onTintIncreaseMax={editor.handleBulkTintIncreaseMax}
-    //                     onVibranceDecreaseMax={editor.handleBulkVibranceDecreaseMax}
-    //                     onVibranceDecrease={editor.handleBulkVibranceDecrease}
-    //                     onVibranceIncrease={editor.handleBulkVibranceIncrease}
-    //                     onVibranceIncreaseMax={editor.handleBulkVibranceIncreaseMax}
-    //                     onSaturationDecreaseMax={editor.handleBulkSaturationDecreaseMax}
-    //                     onSaturationDecrease={editor.handleBulkSaturationDecrease}
-    //                     onSaturationIncrease={editor.handleBulkSaturationIncrease}
-    //                     onSaturationIncreaseMax={editor.handleBulkSaturationIncreaseMax}
-    //                     // Adjustments Light
-    //                     onExposureDecreaseMax= {editor.handleBulkExposureDecreaseMax}
-    //                     onExposureDecrease= {editor.handleBulkExposureDecrease}
-    //                     onExposureIncrease= {editor.handleBulkExposureIncrease}
-    //                     onExposureIncreaseMax= {editor.handleBulkExposureIncreaseMax}
-    //                     onContrastDecreaseMax= {editor.handleBulkContrastDecreaseMax}
-    //                     onContrastDecrease= {editor.handleBulkContrastDecrease}
-    //                     onContrastIncrease= {editor.handleBulkContrastIncrease}
-    //                     onContrastIncreaseMax= {editor.handleBulkContrastIncreaseMax}
-    //                     onHighlightsDecreaseMax= {editor.handleBulkHighlightsDecreaseMax}
-    //                     onHighlightsDecrease= {editor.handleBulkHighlightsDecrease}
-    //                     onHighlightsIncrease= {editor.handleBulkHighlightsIncrease}
-    //                     onHighlightsIncreaseMax= {editor.handleBulkHighlightsIncreaseMax}
-    //                     onShadowsDecreaseMax= {editor.handleBulkShadowsDecreaseMax}
-    //                     onShadowsDecrease= {editor.handleBulkShadowsDecrease}
-    //                     onShadowsIncrease= {editor.handleBulkShadowsIncrease}
-    //                     onShadowsIncreaseMax= {editor.handleBulkShadowsIncreaseMax}
-    //                     onWhitesDecreaseMax= {editor.handleBulkWhitesDecreaseMax}
-    //                     onWhitesDecrease= {editor.handleBulkWhitesDecrease}
-    //                     onWhitesIncrease= {editor.handleBulkWhitesIncrease}
-    //                     onWhitesIncreaseMax= {editor.handleBulkWhitesIncreaseMax}
-    //                     onBlacksDecreaseMax= {editor.handleBulkBlacksDecreaseMax}
-    //                     onBlacksDecrease= {editor.handleBulkBlacksDecrease}
-    //                     onBlacksIncrease= {editor.handleBulkBlacksIncrease}
-    //                     onBlacksIncreaseMax= {editor.handleBulkBlacksIncreaseMax}
-    //                     // Adjustments Details
-    //                     onClarityDecreaseMax={editor.handleBulkClarityDecreaseMax}
-    //                     onClarityDecrease={editor.handleBulkClarityDecrease}
-    //                     onClarityIncrease={editor.handleBulkClarityIncrease}
-    //                     onClarityIncreaseMax={editor.handleBulkClarityIncreaseMax}
-    //                     onSharpnessDecreaseMax={editor.handleBulkSharpnessDecreaseMax}
-    //                     onSharpnessDecrease={editor.handleBulkSharpnessDecrease}
-    //                     onSharpnessIncrease={editor.handleBulkSharpnessIncrease}
-    //                     onSharpnessIncreaseMax={editor.handleBulkSharpnessIncreaseMax}
-                        
-    //                     // Panels Management
-    //                     expandedPanels={editor.colorAdjustmentExpandedPanels}
-    //                     onPanelChange={editor.handleColorAccordionChange}
-    //                 />
-    //             );
-    //         case 'preset':
-    //             return (
-    //                 <HBulkPreset
-    //                     presets={editor.presets}
-    //                     selectedPreset={editor.selectedBulkPreset}
-    //                     onSelectPreset={editor.handleSelectBulkPreset}
-    //                     expandedPanels={editor.presetExpandedPanels}
-    //                     onPanelChange={editor.handlePresetAccordionChange}
-    //                     presetMenuAnchorEl={editor.presetMenuAnchorEl}
-    //                     activePresetMenuId={editor.activePresetMenuId}
-    //                     isMenuOpen={Boolean(editor.presetMenuAnchorEl)}
-    //                     onPresetMenuClick={editor.handlePresetMenuClick}
-    //                     onPresetMenuClose={editor.handlePresetMenuClose}
-    //                     onRemovePreset={editor.handleRemovePreset}
-    //                     onRenamePreset={editor.handleOpenRenameModal}
-    //                     onDeletePreset={editor.handleDeletePreset}
-    //                     onOpenPresetModal={editor.handleOpenPresetModal}
-    //                 />
-    //             );
-    //         default: return null;
-    //     }
-    // }
-
     const renderActivePanel = () => {
         // MARK: Dekstop Editor panels
         switch (editor.activePanel) {
@@ -430,51 +337,6 @@ function HImageEditorClient() {
                 {!editor.isOnline && <HAlertInternetBox />}
                 {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
                 {editor.showCopyAlert && <HAlertCopyBox />}
-
-                {/* <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.800', borderRadius: 2, background: '#222', mx: 2 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1, color: 'white' }}>
-                        Test onGetImage Function
-                    </Typography>
-                    <Stack spacing={1}>
-                        <input
-                            type="text"
-                            placeholder="Firebase UID"
-                            value={testFirebaseId}
-                            onChange={e => setTestFirebaseId(e.target.value)}
-                            style={{ padding: 8, borderRadius: 4, border: '1px solid #444', background: '#333', color: '#fff' }}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Image ID"
-                            value={testImageId}
-                            onChange={e => setTestImageId(e.target.value)}
-                            style={{ padding: 8, borderRadius: 4, border: '1px solid #444', background: '#333', color: '#fff' }}
-                        />
-                    </Stack>
-                    <Button
-                        variant="contained"
-                        onClick={async () => {
-                            setTestLoading(true);
-                            setTestResult(null);
-                            try {
-                                const url = await exposeController.onGetImage(testFirebaseId, testImageId);
-                                setTestResult(url ? `✅ Success! URL: ${url}` : '❌ No URL returned.');
-                            } catch (err) {
-                                setTestResult(`❌ Error: ${err instanceof Error ? err.message : String(err)}`);
-                            }
-                            setTestLoading(false);
-                        }}
-                        disabled={testLoading || !testFirebaseId || !testImageId}
-                        sx={{ mt: 2 }}
-                    >
-                        {testLoading ? 'Checking...' : 'Check Image'}
-                    </Button>
-                    {testResult && (
-                        <Typography variant="body2" sx={{ mt: 2, color: testResult.startsWith('✅') ? 'lightgreen' : 'red', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                            {testResult}
-                        </Typography>
-                    )}
-                </Box> */}
 
                 <HHeaderEditor
                     onBack={editor.handleBackCallback}
@@ -622,33 +484,7 @@ function HImageEditorClient() {
                             {renderActivePanel()}
                         </HImageEditorDesktop>
                     )}
-
-                    {/* {!isMobile && editor.isBulkEditing && (
-                        <HImageEditorBulkDekstop
-                            activePanel={editor.activePanel}
-                            setActivePanel={editor.setActivePanel}
-                            onScale={handleScale}
-                            onBeforeAfter={handleBeforeAfter}
-                            isPanelOpen={!isMobile}
-                            anchorElZoom={editor.anchorMenuZoom}
-                            onZoomMenuClose={() => editor.setAnchorMenuZoom(null)}
-                            onZoomAction={editor.handleZoomAction}
-                            footer={
-                                <HFooter
-                                    anchorElZoom={editor.anchorMenuZoom}
-                                    onScale={(event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget)}
-                                    onShowOriginal={editor.handleShowOriginal}
-                                    onShowEdited={editor.handleShowEdited}
-                                    onZoomMenuClose={() => editor.setAnchorMenuZoom(null)}
-                                    onZoomAction={editor.handleZoomAction}
-                                    zoomLevelText={editor.zoomLevelText} 
-                                />
-                            }
-                        >
-                            {renderActivePanelBulk()}
-                        </HImageEditorBulkDekstop>
-                    )} */}
-
+                    
                     {isMobile && (
                         <HImageEditorMobile
                             presets={editor.presets}
@@ -699,77 +535,6 @@ function HImageEditorClient() {
                             onSelectPreset={editor.handleSelectMobilePreset}
                         />
                     )}
-                    {/* {isMobile && editor.isBulkEditing && (
-                        <HImageEditorBulkMobile
-                            presets={editor.presets}
-                            contentRef={editor.contentRef}
-                            panelRef={editor.panelRef}
-                            panelHeight={editor.panelHeight}
-                            handleDragStart={editor.handleDragStart}
-                            onContentHeightChange={editor.handleContentHeightChange}
-                            activePanel={editor.activePanel}
-                            setActivePanel={(panel) => { editor.setActivePanel(panel); editor.setActiveSubPanel(''); }}
-                            activeSubPanel={editor.activeSubPanel}
-                            setActiveSubPanel={editor.setActiveSubPanel}
-                            
-                            // Color Adjustments
-                            onTempDecreaseMax={editor.handleBulkTempDecreaseMax}
-                            onTempDecrease={editor.handleBulkTempDecrease}
-                            onTempIncrease={editor.handleBulkTempIncrease}
-                            onTempIncreaseMax={editor.handleBulkTempIncreaseMax}
-                            onTintDecreaseMax={editor.handleBulkTintDecreaseMax}
-                            onTintDecrease={editor.handleBulkTintDecrease}
-                            onTintIncrease={editor.handleBulkTintIncrease}
-                            onTintIncreaseMax={editor.handleBulkTintIncreaseMax}
-                            onVibranceDecreaseMax={editor.handleBulkVibranceDecreaseMax}
-                            onVibranceDecrease={editor.handleBulkVibranceDecrease}
-                            onVibranceIncrease={editor.handleBulkVibranceIncrease}
-                            onVibranceIncreaseMax={editor.handleBulkVibranceIncreaseMax}
-                            onSaturationDecreaseMax={editor.handleBulkSaturationDecreaseMax}
-                            onSaturationDecrease={editor.handleBulkSaturationDecrease}
-                            onSaturationIncrease={editor.handleBulkSaturationIncrease}
-                            onSaturationIncreaseMax={editor.handleBulkSaturationIncreaseMax}
-                            // Adjustments Light
-                            onExposureDecreaseMax= {editor.handleBulkExposureDecreaseMax}
-                            onExposureDecrease= {editor.handleBulkExposureDecrease}
-                            onExposureIncrease= {editor.handleBulkExposureIncrease}
-                            onExposureIncreaseMax= {editor.handleBulkExposureIncreaseMax}
-                            onContrastDecreaseMax= {editor.handleBulkContrastDecreaseMax}
-                            onContrastDecrease= {editor.handleBulkContrastDecrease}
-                            onContrastIncrease= {editor.handleBulkContrastIncrease}
-                            onContrastIncreaseMax= {editor.handleBulkContrastIncreaseMax}
-                            onHighlightsDecreaseMax= {editor.handleBulkHighlightsDecreaseMax}
-                            onHighlightsDecrease= {editor.handleBulkHighlightsDecrease}
-                            onHighlightsIncrease= {editor.handleBulkHighlightsIncrease}
-                            onHighlightsIncreaseMax= {editor.handleBulkHighlightsIncreaseMax}
-                            onShadowsDecreaseMax= {editor.handleBulkShadowsDecreaseMax}
-                            onShadowsDecrease= {editor.handleBulkShadowsDecrease}
-                            onShadowsIncrease= {editor.handleBulkShadowsIncrease}
-                            onShadowsIncreaseMax= {editor.handleBulkShadowsIncreaseMax}
-                            onWhitesDecreaseMax= {editor.handleBulkWhitesDecreaseMax}
-                            onWhitesDecrease= {editor.handleBulkWhitesDecrease}
-                            onWhitesIncrease= {editor.handleBulkWhitesIncrease}
-                            onWhitesIncreaseMax= {editor.handleBulkWhitesIncreaseMax}
-                            onBlacksDecreaseMax= {editor.handleBulkBlacksDecreaseMax}
-                            onBlacksDecrease= {editor.handleBulkBlacksDecrease}
-                            onBlacksIncrease= {editor.handleBulkBlacksIncrease}
-                            onBlacksIncreaseMax= {editor.handleBulkBlacksIncreaseMax}
-                            // Adjustments Details
-                            onClarityDecreaseMax={editor.handleBulkClarityDecreaseMax}
-                            onClarityDecrease={editor.handleBulkClarityDecrease}
-                            onClarityIncrease={editor.handleBulkClarityIncrease}
-                            onClarityIncreaseMax={editor.handleBulkClarityIncreaseMax}
-                            onSharpnessDecreaseMax={editor.handleBulkSharpnessDecreaseMax}
-                            onSharpnessDecrease={editor.handleBulkSharpnessDecrease}
-                            onSharpnessIncrease={editor.handleBulkSharpnessIncrease}
-                            onSharpnessIncreaseMax={editor.handleBulkSharpnessIncreaseMax}
-
-                            selectedPresetBulk={editor.selectedBulkPreset}
-                            onOpenPresetModalBulk={editor.handleOpenPresetModalMobile}
-                            onSelectPresetBulk={editor.handleSelectBulkPreset}
-                            onPresetMenuClickBulk={editor.handlePresetMenuClick}
-                        />
-                    )} */}
 
                     <HPresetOptionsMenu
                         anchorEl={editor.presetMenuAnchorEl}
