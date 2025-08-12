@@ -392,68 +392,69 @@ function HImageEditorClient() {
                                         ref={editor.canvasRef}
                                         style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
                                     />
-                                    {!isMobile && (
-                                        <>
-                                            <Button
-                                                size="medium"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: '50%',
-                                                    left: 200,
-                                                    transform: 'translateY(-50%)',
-                                                    zIndex: 2,
-                                                    minWidth: 0,
-                                                    borderRadius: '50%',
-                                                    width: 40,
-                                                    height: 40,
-                                                    padding: 0,
-                                                    opacity: isPrevHovered ? 1 : 0, // Only visible on hover
-                                                    transition: 'opacity 0.4s',
-                                                    backgroundColor: colors.onBackground,
-                                                    color: colors.surface,
-                                                    '&:hover': {
-                                                        backgroundColor: colors.onBackground,
-                                                    }
-                                                }}
-                                                onClick={() => editor.onSwipePrev()}
-                                                onMouseEnter={() => setIsPrevHovered(true)}
-                                                onMouseLeave={() => setIsPrevHovered(false)}
-                                                aria-label="Previous Image"
-                                            >
-                                                <ArrowBackIosNewIcon fontSize="small" />
-                                            </Button>
+                                    <Button
+                                        size="medium"
+                                        sx={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: 200,
+                                            transform: 'translateY(-50%)',
+                                            zIndex: 2,
+                                            minWidth: 0,
+                                            borderRadius: '50%',
+                                            width: 40,
+                                            height: 40,
+                                            padding: 0,
+                                            opacity: 1, // Only visible on hover
+                                            transition: 'opacity 0.4s',
+                                            backgroundColor: colors.onBackground,
+                                            color: colors.surface,
+                                            '&:hover': {
+                                                backgroundColor: colors.onBackground,
+                                            }
+                                        }}
+                                        onClick={() => editor.onSwipePrev()}
+                                        onMouseEnter={() => setIsPrevHovered(true)}
+                                        onMouseLeave={() => setIsPrevHovered(false)}
+                                        aria-label="Previous Image"
+                                    >
+                                        <ArrowBackIosNewIcon fontSize="small" />
+                                    </Button>
 
-                                            {/* Next Button */}
-                                            <Button
-                                                size="medium"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: '50%',
-                                                    right: 200,
-                                                    transform: 'translateY(-50%)',
-                                                    zIndex: 2,
-                                                    minWidth: 0,
-                                                    borderRadius: '50%',
-                                                    width: '48px',
-                                                    height: '48px',
-                                                    padding: 0,
-                                                    opacity: isNextHovered ? 1 : 0, // Only visible on hover
-                                                    transition: 'opacity 0.4s',
-                                                    backgroundColor: colors.onBackground,
-                                                    color: colors.surface,
-                                                    '&:hover': {
-                                                        backgroundColor: colors.onBackground,
-                                                    }
-                                                }}
-                                                onClick={() => editor.onSwipeNext()}
-                                                onMouseEnter={() => setIsNextHovered(true)}
-                                                onMouseLeave={() => setIsNextHovered(false)}
-                                                aria-label="Next Image"
-                                            >
-                                                <ArrowForwardIosIcon fontSize="small" />
-                                            </Button>
+                                    {/* Next Button */}
+                                    <Button
+                                        size="medium"
+                                        sx={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            right: 200,
+                                            transform: 'translateY(-50%)',
+                                            zIndex: 2,
+                                            minWidth: 0,
+                                            borderRadius: '50%',
+                                            width: '48px',
+                                            height: '48px',
+                                            padding: 0,
+                                            opacity: 1, // Only visible on hover
+                                            transition: 'opacity 0.4s',
+                                            backgroundColor: colors.onBackground,
+                                            color: colors.surface,
+                                            '&:hover': {
+                                                backgroundColor: colors.onBackground,
+                                            }
+                                        }}
+                                        onClick={() => editor.onSwipeNext()}
+                                        onMouseEnter={() => setIsNextHovered(true)}
+                                        onMouseLeave={() => setIsNextHovered(false)}
+                                        aria-label="Next Image"
+                                    >
+                                        <ArrowForwardIosIcon fontSize="small" />
+                                    </Button>
+                                    {/* {!isMobile && (
+                                        <>
+                                            
                                         </>
-                                    )}
+                                    )} */}
                                 </Box>
                             )
                         )}
