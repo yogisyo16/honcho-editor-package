@@ -249,10 +249,10 @@ function HImageEditorClient() {
         // Threshold for swipe (adjust as needed)
         if (deltaX > 20) {
             // Swipe right: previous image
-            editor.onSwipePrev;
+            editor.onSwipePrev();
         } else if (deltaX < -20) {
             // Swipe left: next image
-            editor.onSwipeNext;
+            editor.onSwipeNext();
         }
         touchStartX.current = null;
     };
