@@ -96,7 +96,7 @@ const onGetToken = () => new Promise<string>((resolve, reject) => {
 
 const exposeController: Controller = {
     onGetImage: async (firebaseUid: string, imageID: string) => {
-        console.debug("on Get Image called");
+        console.debug("on Get Image called: ", imageID);
         const isMobile = !!((window as any).webkit?.messageHandlers?.nativeHandler || (window as any).Android?.getToken);
 
         if (isMobile) {
