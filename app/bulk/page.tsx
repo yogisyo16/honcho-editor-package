@@ -317,7 +317,7 @@ function HImageEditorBulkClient() {
 
                         {editor.imageList.length === 0 ? (
                             // Initial state: Prompt user to select images
-                            <Box onClick={() => editor2.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed grey', borderRadius: 2, p: 4, cursor: 'pointer', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
+                            <Box onClick={() => editor2.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, cursor: 'pointer', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
                                 {!editor2.isEditorReady ? <CircularProgress color="inherit" sx={{ mb: 2 }} /> : null}
                                 <Typography variant="h6">Select Images for Bulk Edit</Typography>
                             </Box>
