@@ -198,6 +198,11 @@ function HImageEditorClient() {
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -460,127 +465,131 @@ function HImageEditorClient() {
                             )
                         )}
                     </Box>
-
-                    {!isMobile && (
-                        <HImageEditorDesktop
-                            activePanel={editor.activePanel}
-                            setActivePanel={editor.setActivePanel}
-                            onScale={handleScale}
-                            onBeforeAfter={handleBeforeAfter}
-                            isPanelOpen={!isMobile}
-                            anchorElZoom={editor.anchorMenuZoom}
-                            onZoomMenuClose={() => editor.setAnchorMenuZoom(null)}
-                            onZoomAction={editor.handleZoomAction}
-                            footer={
-                                <HFooter
+                    {!isClient && (
+                        <>
+                            {!isMobile && (
+                                <HImageEditorDesktop
+                                    activePanel={editor.activePanel}
+                                    setActivePanel={editor.setActivePanel}
+                                    onScale={handleScale}
+                                    onBeforeAfter={handleBeforeAfter}
+                                    isPanelOpen={!isMobile}
                                     anchorElZoom={editor.anchorMenuZoom}
-                                    onScale={(event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget)}
-                                    onShowOriginal={editor.handleShowOriginal}
-                                    onShowEdited={editor.handleShowEdited}
                                     onZoomMenuClose={() => editor.setAnchorMenuZoom(null)}
                                     onZoomAction={editor.handleZoomAction}
-                                    zoomLevelText={editor.zoomLevelText} 
+                                    footer={
+                                        <HFooter
+                                            anchorElZoom={editor.anchorMenuZoom}
+                                            onScale={(event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget)}
+                                            onShowOriginal={editor.handleShowOriginal}
+                                            onShowEdited={editor.handleShowEdited}
+                                            onZoomMenuClose={() => editor.setAnchorMenuZoom(null)}
+                                            onZoomAction={editor.handleZoomAction}
+                                            zoomLevelText={editor.zoomLevelText} 
+                                        />
+                                    }
+                                >
+                                    {renderActivePanel()}
+                                </HImageEditorDesktop>
+                            )}
+                            
+                            {isMobile && (
+                                <HImageEditorMobile
+                                    presets={editor.presets}
+                                    contentRef={editor.contentRef}
+                                    panelRef={editor.panelRef}
+                                    panelHeight={editor.panelHeight}
+                                    handleDragStart={editor.handleDragStart}
+                                    onContentHeightChange={editor.handleContentHeightChange}
+                                    activePanel={editor.activePanel}
+                                    setActivePanel={(panel) => { editor.setActivePanel(panel); editor.setActiveSubPanel(''); }}
+                                    activeSubPanel={editor.activeSubPanel}
+                                    setActiveSubPanel={editor.setActiveSubPanel}
+                                    
+                                    // Color Adjustments
+                                    tempScore={editor.currentAdjustmentsState.tempScore}
+                                    onTempChange={editor.setTempScore}
+                                    tintScore={editor.currentAdjustmentsState.tintScore}
+                                    onTintChange={editor.setTintScore}
+                                    vibranceScore={editor.currentAdjustmentsState.vibranceScore}
+                                    onVibranceChange={editor.setVibranceScore}
+                                    saturationScore={editor.currentAdjustmentsState.saturationScore}
+                                    onSaturationChange={editor.setSaturationScore}
+
+                                    // Adjustments Light
+                                    exposureScore={editor.currentAdjustmentsState.exposureScore}
+                                    onExposureChange={editor.setExposureScore}
+                                    contrastScore={editor.currentAdjustmentsState.contrastScore}
+                                    onContrastChange={editor.setContrastScore}
+                                    highlightsScore={editor.currentAdjustmentsState.highlightsScore}
+                                    onHighlightsChange={editor.setHighlightsScore}
+                                    shadowScore={editor.currentAdjustmentsState.shadowsScore}
+                                    onShadowsChange={editor.setShadowsScore}
+                                    whiteScore={editor.currentAdjustmentsState.whitesScore}
+                                    onWhitesChange={editor.setWhitesScore}
+                                    blackScore={editor.currentAdjustmentsState.blacksScore}
+                                    onBlacksChange={editor.setBlacksScore}
+
+                                    // Adjustments Details
+                                    clarityScore={editor.currentAdjustmentsState.clarityScore}
+                                    onClarityChange={editor.setClarityScore}
+                                    sharpnessScore={editor.currentAdjustmentsState.sharpnessScore}
+                                    onSharpnessChange={editor.setSharpnessScore}
+                                    
+                                    // Modal Management
+                                    onOpenPresetModal={editor.handleOpenPresetModalMobile}
+                                    presetOptionModal={editor.handlePresetMenuClick}
+                                    selectedPreset={editor.selectedMobilePreset}
+                                    onSelectPreset={editor.handleSelectMobilePreset}
                                 />
-                            }
-                        >
-                            {renderActivePanel()}
-                        </HImageEditorDesktop>
-                    )}
-                    
-                    {isMobile && (
-                        <HImageEditorMobile
-                            presets={editor.presets}
-                            contentRef={editor.contentRef}
-                            panelRef={editor.panelRef}
-                            panelHeight={editor.panelHeight}
-                            handleDragStart={editor.handleDragStart}
-                            onContentHeightChange={editor.handleContentHeightChange}
-                            activePanel={editor.activePanel}
-                            setActivePanel={(panel) => { editor.setActivePanel(panel); editor.setActiveSubPanel(''); }}
-                            activeSubPanel={editor.activeSubPanel}
-                            setActiveSubPanel={editor.setActiveSubPanel}
-                            
-                            // Color Adjustments
-                            tempScore={editor.currentAdjustmentsState.tempScore}
-                            onTempChange={editor.setTempScore}
-                            tintScore={editor.currentAdjustmentsState.tintScore}
-                            onTintChange={editor.setTintScore}
-                            vibranceScore={editor.currentAdjustmentsState.vibranceScore}
-                            onVibranceChange={editor.setVibranceScore}
-                            saturationScore={editor.currentAdjustmentsState.saturationScore}
-                            onSaturationChange={editor.setSaturationScore}
+                            )}
 
-                            // Adjustments Light
-                            exposureScore={editor.currentAdjustmentsState.exposureScore}
-                            onExposureChange={editor.setExposureScore}
-                            contrastScore={editor.currentAdjustmentsState.contrastScore}
-                            onContrastChange={editor.setContrastScore}
-                            highlightsScore={editor.currentAdjustmentsState.highlightsScore}
-                            onHighlightsChange={editor.setHighlightsScore}
-                            shadowScore={editor.currentAdjustmentsState.shadowsScore}
-                            onShadowsChange={editor.setShadowsScore}
-                            whiteScore={editor.currentAdjustmentsState.whitesScore}
-                            onWhitesChange={editor.setWhitesScore}
-                            blackScore={editor.currentAdjustmentsState.blacksScore}
-                            onBlacksChange={editor.setBlacksScore}
-
-                            // Adjustments Details
-                            clarityScore={editor.currentAdjustmentsState.clarityScore}
-                            onClarityChange={editor.setClarityScore}
-                            sharpnessScore={editor.currentAdjustmentsState.sharpnessScore}
-                            onSharpnessChange={editor.setSharpnessScore}
-                            
-                            // Modal Management
-                            onOpenPresetModal={editor.handleOpenPresetModalMobile}
-                            presetOptionModal={editor.handlePresetMenuClick}
-                            selectedPreset={editor.selectedMobilePreset}
-                            onSelectPreset={editor.handleSelectMobilePreset}
-                        />
-                    )}
-
-                    <HPresetOptionsMenu
-                        anchorEl={editor.presetMenuAnchorEl}
-                        isOpen={Boolean(editor.presetMenuAnchorEl)}
-                        onClose={editor.handlePresetMenuClose}
-                        onRemove={editor.handleRemovePreset}
-                        onRename={editor.handleOpenRenameModal}
-                        onDelete={editor.handleDeletePreset}
-                        // isPresetSelected={(editor.isBulkEditing ? editor.selectedBulkPreset : editor.selectedDesktopPreset) === editor.activePresetMenuId}
-                    />
-                    <HModalEditorDekstop
-                        modalName="preset"
-                        modalOpen={editor.isPresetModalOpen}
-                        modalTitle="Create Preset"
-                        modalInformation="Choose settings to include in preset"
-                        action={
-                            <HDialogPreset
-                                colorChecks={editor.copyColorChecks}
-                                lightChecks={editor.copyLightChecks}
-                                detailsChecks={editor.copyDetailsChecks}
-                                setColorChecks={editor.setCopyColorChecks}
-                                setLightChecks={editor.setCopyLightChecks}
-                                setDetailsChecks={editor.setCopyDetailsChecks}
-                                expanded={editor.copyDialogExpanded}
-                                onParentChange={editor.handleCopyParentChange}
-                                onChildChange={editor.handleCopyChildChange}
-                                onToggleExpand={editor.handleToggleCopyDialogExpand}
+                            <HPresetOptionsMenu
+                                anchorEl={editor.presetMenuAnchorEl}
+                                isOpen={Boolean(editor.presetMenuAnchorEl)}
+                                onClose={editor.handlePresetMenuClose}
+                                onRemove={editor.handleRemovePreset}
+                                onRename={editor.handleOpenRenameModal}
+                                onDelete={editor.handleDeletePreset}
+                                // isPresetSelected={(editor.isBulkEditing ? editor.selectedBulkPreset : editor.selectedDesktopPreset) === editor.activePresetMenuId}
                             />
-                        }
-                        modalClose={editor.handleClosePresetModal}
-                        onConfirm={editor.handleCreatePreset}
-                    >
-                        <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
-                    </HModalEditorDekstop>
-                    <HModalMobile
-                        modalName="preset"
-                        modalOpen={editor.isPresetModalOpenMobile}
-                        modalTitle="Create Preset"
-                        modalInformation="Create a preset with the current Light, Colour and Details settings"
-                        modalClose={editor.handleClosePresetModalMobile}
-                        onConfirm={editor.handleCreatePresetMobile}
-                    >
-                        <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
-                    </HModalMobile>
+                            <HModalEditorDekstop
+                                modalName="preset"
+                                modalOpen={editor.isPresetModalOpen}
+                                modalTitle="Create Preset"
+                                modalInformation="Choose settings to include in preset"
+                                action={
+                                    <HDialogPreset
+                                        colorChecks={editor.copyColorChecks}
+                                        lightChecks={editor.copyLightChecks}
+                                        detailsChecks={editor.copyDetailsChecks}
+                                        setColorChecks={editor.setCopyColorChecks}
+                                        setLightChecks={editor.setCopyLightChecks}
+                                        setDetailsChecks={editor.setCopyDetailsChecks}
+                                        expanded={editor.copyDialogExpanded}
+                                        onParentChange={editor.handleCopyParentChange}
+                                        onChildChange={editor.handleCopyChildChange}
+                                        onToggleExpand={editor.handleToggleCopyDialogExpand}
+                                    />
+                                }
+                                modalClose={editor.handleClosePresetModal}
+                                onConfirm={editor.handleCreatePreset}
+                            >
+                                <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
+                            </HModalEditorDekstop>
+                            <HModalMobile
+                                modalName="preset"
+                                modalOpen={editor.isPresetModalOpenMobile}
+                                modalTitle="Create Preset"
+                                modalInformation="Create a preset with the current Light, Colour and Details settings"
+                                modalClose={editor.handleClosePresetModalMobile}
+                                onConfirm={editor.handleCreatePresetMobile}
+                            >
+                                <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
+                            </HModalMobile>
+                        </>
+                        )
+                    }
                 </Stack>
             </Stack>
 
