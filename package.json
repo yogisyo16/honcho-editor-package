@@ -9,12 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@yogiswara/honcho-editor-ui": "^1.0.5",
-    "rxjs": "^7.8.2",
+    "@yogiswara/honcho-editor-ui": "^2.0.0",
     "axios": "^1.11.0",
     "next": "14.2.14",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/node": "^20",
