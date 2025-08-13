@@ -192,27 +192,14 @@ function HImageEditorClient() {
     const [isPrevHovered, setIsPrevHovered] = useState(false);
     const [isNextHovered, setIsNextHovered] = useState(false);
 
+    const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+
     const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isLongPressActiveRef = useRef<boolean>(false);
 
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const params = new URLSearchParams(window.location.search);
-            const imageIdFromUrl = params.get("imageID");
-            const firebaseUidFromUrl = params.get("firebaseUID");
-            if (imageIdFromUrl) setimageId(imageIdFromUrl);
-            if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
-        }
-    }, []);
 
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
@@ -329,144 +316,168 @@ function HImageEditorClient() {
         );
     }
 
+    useEffect(() => {
+        // Part 1: Get URL parameters (will only run if imageId is not yet set)
+        if (!imageId && typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const imageIdFromUrl = params.get("imageID");
+            const firebaseUidFromUrl = params.get("firebaseUID");
+
+            if (imageIdFromUrl) {
+                setimageId(imageIdFromUrl);
+            }
+            if (firebaseUidFromUrl) {
+                setfirebaseId(firebaseUidFromUrl);
+            }
+        }
+
+        // Part 2: Check if the initial image load is complete
+        if (editor.isImageLoaded && !isInitialLoadComplete) {
+            setIsInitialLoadComplete(true);
+        }
+
+    // The dependency array includes all variables that the effect "watches" for changes.
+    }, [imageId, editor.isImageLoaded, isInitialLoadComplete]);
+
     return (
         <>
-            <Script
-                src="/honcho-photo-editor.js"
-                strategy="lazyOnload"
-                onReady={() => {
-                    editor.handleScriptReady();
-                }}
-            />
-            <Stack direction="column" justifyContent="center" sx={{ width: '100%', height: isMobile ? '100%' : '100vh', background: 'black', pl: isMobile ? 0 : "24px", pr: isMobile ? 0 : "0px" }}>
-                {editor.isConnectionSlow && <HAlertInternetConnectionBox onClose={editor.handleAlertClose} />}
-                {!editor.isOnline && <HAlertInternetBox />}
-                {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
-                {editor.showCopyAlert && <HAlertCopyBox />}
+            {!isInitialLoadComplete && (
+                <>
+                    <Script
+                        src="/honcho-photo-editor.js"
+                        strategy="lazyOnload"
+                        onReady={() => {
+                            editor.handleScriptReady();
+                        }}
+                    />
+                    <Stack direction="column" justifyContent="center" sx={{ width: '100%', height: isMobile ? '100%' : '100vh', background: 'black', pl: isMobile ? 0 : "24px", pr: isMobile ? 0 : "0px" }}>
+                        {editor.isConnectionSlow && <HAlertInternetConnectionBox onClose={editor.handleAlertClose} />}
+                        {!editor.isOnline && <HAlertInternetBox />}
+                        {editor.isPresetCreated && !isMobile && <HAlertPresetSave />}
+                        {editor.showCopyAlert && <HAlertCopyBox />}
 
-                <HHeaderEditor
-                    onBack={editor.handleBackCallback}
-                    onUndo={editor.handleUndo}
-                    onRedo={editor.handleRedo}
-                    onRevert={editor.handleRevert}
-                    onCopyEdit={editor.handleOpenCopyDialog}
-                    onPasteEdit={editor.handlePasteEdit}
-                    isPasteEnabled={editor.isPasteAvailable}
-                    anchorEl={editor.headerMenuAnchorEl}
-                    onMenuClick={editor.handleHeaderMenuClick}
-                    onMenuClose={editor.handleHeaderMenuClose}
-                    // onSelectButton={editor.toggleBulkEditing}
-                    // valueSelect={editor.selectedImages}
-                />
-                <Stack
-                    direction={isMobile ? "column" : "row"}
-                    justifyContent="space-between"
-                    alignItems="stretch"
-                    sx={{ width: '100%', flexGrow: 1, overflow: 'hidden' }}
-                >
-                    {/* Main Canvas Area */}
-                    <Box sx={{ 
-                        flexGrow: 1,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center', // This will now work correctly on mobile
-                        position: 'relative',
-                        p: isMobile ? 2 : 4,
-                        minHeight: 720
-                    }}>
+                        <HHeaderEditor
+                            onBack={editor.handleBackCallback}
+                            onUndo={editor.handleUndo}
+                            onRedo={editor.handleRedo}
+                            onRevert={editor.handleRevert}
+                            onCopyEdit={editor.handleOpenCopyDialog}
+                            onPasteEdit={editor.handlePasteEdit}
+                            isPasteEnabled={editor.isPasteAvailable}
+                            anchorEl={editor.headerMenuAnchorEl}
+                            onMenuClick={editor.handleHeaderMenuClick}
+                            onMenuClose={editor.handleHeaderMenuClose}
+                            // onSelectButton={editor.toggleBulkEditing}
+                            // valueSelect={editor.selectedImages}
+                        />
+                        <Stack
+                            direction={isMobile ? "column" : "row"}
+                            justifyContent="space-between"
+                            alignItems="stretch"
+                            sx={{ width: '100%', flexGrow: 1, overflow: 'hidden' }}
+                        >
+                            {/* Main Canvas Area */}
+                            <Box sx={{ 
+                                flexGrow: 1,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center', // This will now work correctly on mobile
+                                position: 'relative',
+                                p: isMobile ? 2 : 4,
+                                minHeight: 720
+                            }}>
 
-                        {!editor.isImageLoaded ? (
-                            <Box onClick={() => editor.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, cursor: editor.isEditorReady ? 'pointer' : 'default', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
-                                {!editor.isEditorReady && <CircularProgress color="inherit" sx={{ mb: 2 }} />}
+                                {!editor.isImageLoaded ? (
+                                    <Box onClick={() => editor.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, cursor: editor.isEditorReady ? 'pointer' : 'default', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
+                                        {!editor.isEditorReady && <CircularProgress color="inherit" sx={{ mb: 2 }} />}
+                                    </Box>
+                                ) : (
+                                    (
+                                        // Canvas for Single Edit
+                                        <Box
+                                            sx={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                height: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                            onTouchStart={handleTouchStart}
+                                            onTouchMove={handleTouchMove}
+                                            onTouchEnd={handleTouchEnd}>
+                                            <canvas
+                                                ref={editor.canvasRef}
+                                                style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
+                                            />
+                                            {!isMobile && (
+                                                <>
+                                                    <Button
+                                                        size="medium"
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: '50%',
+                                                            left: isMobile ? 10 : 200,
+                                                            transform: 'translateY(-50%)',
+                                                            zIndex: 2,
+                                                            minWidth: 0,
+                                                            borderRadius: '50%',
+                                                            width: 40,
+                                                            height: 40,
+                                                            padding: 0,
+                                                            opacity: isPrevHovered ? 1 : 0, // Only visible on hover
+                                                            transition: 'opacity 0.4s',
+                                                            backgroundColor: colors.onBackground,
+                                                            color: colors.surface,
+                                                            '&:hover': {
+                                                                backgroundColor: colors.onBackground,
+                                                            }
+                                                        }}
+                                                        onClick={() => editor.onSwipePrev()}
+                                                        onMouseEnter={() => setIsPrevHovered(true)}
+                                                        onMouseLeave={() => setIsPrevHovered(false)}
+                                                        aria-label="Previous Image"
+                                                    >
+                                                        <ArrowBackIosNewIcon fontSize="small" />
+                                                    </Button>
+
+                                                    {/* Next Button */}
+                                                    <Button
+                                                        size="medium"
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: '50%',
+                                                            right: isMobile ? 10 : 200,
+                                                            transform: 'translateY(-50%)',
+                                                            zIndex: 2,
+                                                            minWidth: 0,
+                                                            borderRadius: '50%',
+                                                            width: '48px',
+                                                            height: '48px',
+                                                            padding: 0,
+                                                            opacity: isNextHovered ? 1 : 0, // Only visible on hover
+                                                            transition: 'opacity 0.4s',
+                                                            backgroundColor: colors.onBackground,
+                                                            color: colors.surface,
+                                                            '&:hover': {
+                                                                backgroundColor: colors.onBackground,
+                                                            }
+                                                        }}
+                                                        onClick={() => editor.onSwipeNext()}
+                                                        onMouseEnter={() => setIsNextHovered(true)}
+                                                        onMouseLeave={() => setIsNextHovered(false)}
+                                                        aria-label="Next Image"
+                                                    >
+                                                        <ArrowForwardIosIcon fontSize="small" />
+                                                    </Button>
+                                                    
+                                                </>
+                                            )}
+                                        </Box>
+                                    )
+                                )}
                             </Box>
-                        ) : (
-                            (
-                                // Canvas for Single Edit
-                                <Box
-                                    sx={{
-                                        position: 'relative',
-                                        width: '100%',
-                                        height: '100%',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center'
-                                    }}
-                                    onTouchStart={handleTouchStart}
-                                    onTouchMove={handleTouchMove}
-                                    onTouchEnd={handleTouchEnd}>
-                                    <canvas
-                                        ref={editor.canvasRef}
-                                        style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
-                                    />
-                                    {!isMobile && (
-                                        <>
-                                            <Button
-                                                size="medium"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: '50%',
-                                                    left: isMobile ? 10 : 200,
-                                                    transform: 'translateY(-50%)',
-                                                    zIndex: 2,
-                                                    minWidth: 0,
-                                                    borderRadius: '50%',
-                                                    width: 40,
-                                                    height: 40,
-                                                    padding: 0,
-                                                    opacity: isPrevHovered ? 1 : 0, // Only visible on hover
-                                                    transition: 'opacity 0.4s',
-                                                    backgroundColor: colors.onBackground,
-                                                    color: colors.surface,
-                                                    '&:hover': {
-                                                        backgroundColor: colors.onBackground,
-                                                    }
-                                                }}
-                                                onClick={() => editor.onSwipePrev()}
-                                                onMouseEnter={() => setIsPrevHovered(true)}
-                                                onMouseLeave={() => setIsPrevHovered(false)}
-                                                aria-label="Previous Image"
-                                            >
-                                                <ArrowBackIosNewIcon fontSize="small" />
-                                            </Button>
 
-                                            {/* Next Button */}
-                                            <Button
-                                                size="medium"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: '50%',
-                                                    right: isMobile ? 10 : 200,
-                                                    transform: 'translateY(-50%)',
-                                                    zIndex: 2,
-                                                    minWidth: 0,
-                                                    borderRadius: '50%',
-                                                    width: '48px',
-                                                    height: '48px',
-                                                    padding: 0,
-                                                    opacity: isNextHovered ? 1 : 0, // Only visible on hover
-                                                    transition: 'opacity 0.4s',
-                                                    backgroundColor: colors.onBackground,
-                                                    color: colors.surface,
-                                                    '&:hover': {
-                                                        backgroundColor: colors.onBackground,
-                                                    }
-                                                }}
-                                                onClick={() => editor.onSwipeNext()}
-                                                onMouseEnter={() => setIsNextHovered(true)}
-                                                onMouseLeave={() => setIsNextHovered(false)}
-                                                aria-label="Next Image"
-                                            >
-                                                <ArrowForwardIosIcon fontSize="small" />
-                                            </Button>
-                                            
-                                        </>
-                                    )}
-                                </Box>
-                            )
-                        )}
-                    </Box>
-                    {!isClient && (
-                        <>
                             {!isMobile && (
                                 <HImageEditorDesktop
                                     activePanel={editor.activePanel}
@@ -587,37 +598,36 @@ function HImageEditorClient() {
                             >
                                 <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                             </HModalMobile>
-                        </>
-                        )
-                    }
-                </Stack>
-            </Stack>
+                        </Stack>
+                    </Stack>
 
-            {editor.isCopyDialogOpen && (
-                <HBaseDialog
-                    open={editor.isCopyDialogOpen}
-                    title="Copy Edits"
-                    onClose={editor.handleCloseCopyDialog}
-                    action={
-                        <HDialogCopy
-                            onCopyEdit={editor.handleConfirmCopy}
-                
-                            colorChecks={editor.copyColorChecks}
-                            lightChecks={editor.copyLightChecks}
-                            detailsChecks={editor.copyDetailsChecks}
-                            
-                            setColorChecks={editor.setCopyColorChecks}
-                            setLightChecks={editor.setCopyLightChecks}
-                            setDetailsChecks={editor.setCopyDetailsChecks}
-                            
-                            expanded={editor.copyDialogExpanded}
-                            
-                            onParentChange={editor.handleCopyParentChange}
-                            onChildChange={editor.handleCopyChildChange}
-                            onToggleExpand={editor.handleToggleCopyDialogExpand}
+                    {editor.isCopyDialogOpen && (
+                        <HBaseDialog
+                            open={editor.isCopyDialogOpen}
+                            title="Copy Edits"
+                            onClose={editor.handleCloseCopyDialog}
+                            action={
+                                <HDialogCopy
+                                    onCopyEdit={editor.handleConfirmCopy}
+                        
+                                    colorChecks={editor.copyColorChecks}
+                                    lightChecks={editor.copyLightChecks}
+                                    detailsChecks={editor.copyDetailsChecks}
+                                    
+                                    setColorChecks={editor.setCopyColorChecks}
+                                    setLightChecks={editor.setCopyLightChecks}
+                                    setDetailsChecks={editor.setCopyDetailsChecks}
+                                    
+                                    expanded={editor.copyDialogExpanded}
+                                    
+                                    onParentChange={editor.handleCopyParentChange}
+                                    onChildChange={editor.handleCopyChildChange}
+                                    onToggleExpand={editor.handleToggleCopyDialogExpand}
+                                />
+                            }
                         />
-                    }
-                />
+                    )}
+                </>
             )}
         </>
     )
