@@ -370,7 +370,7 @@ function HImageEditorClient() {
                         minHeight: 720
                     }}>
 
-                        {!editor.isGalleryLoading  ? (
+                        {editor.isGalleryLoading ? (
                             <CircularProgress color="inherit" />
                         ) : editor.isImageLoaded ? (
                             <Box
