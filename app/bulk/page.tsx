@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import { Box, Stack, CircularProgress, Typography, Checkbox, Paper } from "@mui/material";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'; // Magic Wand Icon
 import Script from "next/script";
@@ -21,6 +21,7 @@ import {
     HBulkPreset,
     HModalEditorDekstop,
     HTextField,
+    HDialogPreset,
     HPresetOptionsMenu,
     HAlertInternetBox,
     HAlertCopyBox,
@@ -29,7 +30,8 @@ import {
     
     // Theme & Utility Hooks
     useColors,
-    useIsMobile
+    useIsMobile,
+    useHonchoEditor
 } from '@yogiswara/honcho-editor-ui';
 
 import type {
@@ -176,7 +178,328 @@ const exposeBulkController: Controller = {
     },
 };
 function HImageEditorBulkClient() {
-    const editor = exposeBulkController;
+    const [imageId, setimageId] = useState<string>("");
+    const [firebaseId, setfirebaseId] = useState<string>("");
+    const editor = useHonchoEditorBulk(exposeBulkController, imageId, firebaseId);
+    const editor2 = useHonchoEditor(exposeBulkController, imageId, firebaseId);
+    const isMobile = useIsMobile();
+    const colors = useColors();
+
+    const handleScale = (event: React.MouseEvent<HTMLElement>) => editor2.setAnchorMenuZoom(event.currentTarget);
+    const handleBeforeAfter = () => console.log("Before/After toggled!");
+    const renderActivePanelBulk = () => {
+        switch (editor2.activePanel) {
+            case 'colorAdjustment':
+                return (
+                    <HBulkAccordionColorAdjustment
+                        // Adjustments Colors
+                        onTempDecreaseMax={editor.handleBulkTempDecreaseMax}
+                        onTempDecrease={editor.handleBulkTempDecrease}
+                        onTempIncrease={editor.handleBulkTempIncrease}
+                        onTempIncreaseMax={editor.handleBulkTempIncreaseMax}
+                        onTintDecreaseMax={editor.handleBulkTintDecreaseMax}
+                        onTintDecrease={editor.handleBulkTintDecrease}
+                        onTintIncrease={editor.handleBulkTintIncrease}
+                        onTintIncreaseMax={editor.handleBulkTintIncreaseMax}
+                        onVibranceDecreaseMax={editor.handleBulkVibranceDecreaseMax}
+                        onVibranceDecrease={editor.handleBulkVibranceDecrease}
+                        onVibranceIncrease={editor.handleBulkVibranceIncrease}
+                        onVibranceIncreaseMax={editor.handleBulkVibranceIncreaseMax}
+                        onSaturationDecreaseMax={editor.handleBulkSaturationDecreaseMax}
+                        onSaturationDecrease={editor.handleBulkSaturationDecrease}
+                        onSaturationIncrease={editor.handleBulkSaturationIncrease}
+                        onSaturationIncreaseMax={editor.handleBulkSaturationIncreaseMax}
+                        // Adjustments Light
+                        onExposureDecreaseMax= {editor.handleBulkExposureDecreaseMax}
+                        onExposureDecrease= {editor.handleBulkExposureDecrease}
+                        onExposureIncrease= {editor.handleBulkExposureIncrease}
+                        onExposureIncreaseMax= {editor.handleBulkExposureIncreaseMax}
+                        onContrastDecreaseMax= {editor.handleBulkContrastDecreaseMax}
+                        onContrastDecrease= {editor.handleBulkContrastDecrease}
+                        onContrastIncrease= {editor.handleBulkContrastIncrease}
+                        onContrastIncreaseMax= {editor.handleBulkContrastIncreaseMax}
+                        onHighlightsDecreaseMax= {editor.handleBulkHighlightsDecreaseMax}
+                        onHighlightsDecrease= {editor.handleBulkHighlightsDecrease}
+                        onHighlightsIncrease= {editor.handleBulkHighlightsIncrease}
+                        onHighlightsIncreaseMax= {editor.handleBulkHighlightsIncreaseMax}
+                        onShadowsDecreaseMax= {editor.handleBulkShadowsDecreaseMax}
+                        onShadowsDecrease= {editor.handleBulkShadowsDecrease}
+                        onShadowsIncrease= {editor.handleBulkShadowsIncrease}
+                        onShadowsIncreaseMax= {editor.handleBulkShadowsIncreaseMax}
+                        onWhitesDecreaseMax= {editor.handleBulkWhitesDecreaseMax}
+                        onWhitesDecrease= {editor.handleBulkWhitesDecrease}
+                        onWhitesIncrease= {editor.handleBulkWhitesIncrease}
+                        onWhitesIncreaseMax= {editor.handleBulkWhitesIncreaseMax}
+                        onBlacksDecreaseMax= {editor.handleBulkBlacksDecreaseMax}
+                        onBlacksDecrease= {editor.handleBulkBlacksDecrease}
+                        onBlacksIncrease= {editor.handleBulkBlacksIncrease}
+                        onBlacksIncreaseMax= {editor.handleBulkBlacksIncreaseMax}
+                        // Adjustments Details
+                        onClarityDecreaseMax={editor.handleBulkClarityDecreaseMax}
+                        onClarityDecrease={editor.handleBulkClarityDecrease}
+                        onClarityIncrease={editor.handleBulkClarityIncrease}
+                        onClarityIncreaseMax={editor.handleBulkClarityIncreaseMax}
+                        onSharpnessDecreaseMax={editor.handleBulkSharpnessDecreaseMax}
+                        onSharpnessDecrease={editor.handleBulkSharpnessDecrease}
+                        onSharpnessIncrease={editor.handleBulkSharpnessIncrease}
+                        onSharpnessIncreaseMax={editor.handleBulkSharpnessIncreaseMax}
+                        
+                        // Panels Management
+                        expandedPanels={editor2.colorAdjustmentExpandedPanels}
+                        onPanelChange={editor2.handleColorAccordionChange}
+                    />
+                );
+            case 'preset':
+                return (
+                    <HBulkPreset
+                        presets={editor2.presets}
+                        selectedPreset={editor.selectedBulkPreset}
+                        onSelectPreset={editor.handleSelectBulkPreset}
+                        expandedPanels={editor2.presetExpandedPanels}
+                        onPanelChange={editor2.handlePresetAccordionChange}
+                        presetMenuAnchorEl={editor2.presetMenuAnchorEl}
+                        activePresetMenuId={editor2.activePresetMenuId}
+                        isMenuOpen={Boolean(editor2.presetMenuAnchorEl)}
+                        onPresetMenuClick={editor2.handlePresetMenuClick}
+                        onPresetMenuClose={editor2.handlePresetMenuClose}
+                        onRemovePreset={editor2.handleRemovePreset}
+                        onRenamePreset={editor2.handleOpenRenameModal}
+                        onDeletePreset={editor2.handleDeletePreset}
+                        onOpenPresetModal={editor2.handleOpenPresetModal}
+                    />
+                );
+            default: return null;
+        }
+    };
+
+    return (
+        <>
+            <Script
+                src="/honcho-photo-editor.js"
+                strategy="lazyOnload"
+                onReady={() => {
+                    editor2.handleScriptReady();
+                }}
+            />
+            <Stack direction="column" justifyContent="center" sx={{ width: '100%', height: isMobile ? '100%' : '100vh', background: 'black', pl: isMobile ? 0 : "24px", pr: isMobile ? 0 : "0px" }}>
+                {/* Alerts remain the same */}
+                {editor2.isConnectionSlow && <HAlertInternetConnectionBox onClose={editor2.handleAlertClose} />}
+                {!editor2.isOnline && <HAlertInternetBox />}
+                {editor2.isPresetCreated && !isMobile && <HAlertPresetSave />}
+                {editor2.showCopyAlert && <HAlertCopyBox />}
+
+                <HHeaderEditor
+                    onBack={editor2.handleBackCallback}
+                    onUndo={editor2.handleUndo}
+                    onRedo={editor2.handleRedo}
+                    onRevert={editor2.handleRevert}
+                    onCopyEdit={editor2.handleOpenCopyDialog}
+                    onPasteEdit={editor2.handlePasteEdit}
+                    isPasteEnabled={editor2.isPasteAvailable}
+                    anchorEl={editor2.headerMenuAnchorEl}
+                    onMenuClick={editor2.handleHeaderMenuClick}
+                    onMenuClose={editor2.handleHeaderMenuClose}
+                />
+                <Stack
+                    direction={isMobile ? "column" : "row"}
+                    justifyContent="space-between"
+                    alignItems="stretch"
+                    sx={{ width: '100%', flexGrow: 1, overflow: 'hidden' }}
+                >
+                    {/* Main Content Area: File Input or Image Grid */}
+                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: isMobile ? 2 : 4, height: '100%', overflow: 'hidden' }}>
+                        <input type="file" ref={editor2.fileInputRef} onChange={editor.handleFileChangeBulk} multiple accept="image/*" style={{ display: 'none' }} />
+
+                        {editor.imageList.length === 0 ? (
+                            // Initial state: Prompt user to select images
+                            <Box onClick={() => editor2.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed grey', borderRadius: 2, p: 4, cursor: 'pointer', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
+                                {!editor2.isEditorReady ? <CircularProgress color="inherit" sx={{ mb: 2 }} /> : null}
+                                <Typography variant="h6">Select Images for Bulk Edit</Typography>
+                            </Box>
+                        ) : (
+                            // State after selection: Display the image grid
+                            <Box sx={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                                gap: 2,
+                                width: '100%',
+                                p: 1,
+                                height: '100%',
+                                overflowY: 'auto',
+                            }}>
+                                {editor.imageList.map(image => {
+                                    const imageAdjustments = editor.adjustmentsMap.get(image.id) || {};
+                                    // const isEdited = hasAdjustments(imageAdjustments);
+
+                                    return (
+                                        <Paper
+                                            key={image.id}
+                                            elevation={3}
+                                            sx={{
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                                aspectRatio: '1 / 1',
+                                                '& img': {
+                                                    width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+                                                    transition: 'opacity 0.2s ease-in-out',
+                                                    opacity: editor.selectedImageIds.has(image.id) ? 1 : 0.4,
+                                                }
+                                            }}
+                                        >
+                                            <img src={image.url} />
+                                            <Checkbox
+                                                checked={editor.selectedImageIds.has(image.id)}
+                                                onChange={() => editor.handleToggleImageSelection(image.id)}
+                                                sx={{ position: 'absolute', top: 4, left: 4, color: 'common.white', '&.Mui-checked': { color: '#1976d2' }, backgroundColor: 'rgba(0, 0, 0, 0.5)', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.7)' } }}
+                                            />
+                                            {/* {editor2.isEdited && (
+                                                <AutoFixHighIcon fontSize="small" sx={{ position: 'absolute', bottom: 8, right: 8, color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%', padding: '2px' }} />
+                                            )} */}
+                                        </Paper>
+                                    );
+                                })}
+                            </Box>
+                        )}
+                    </Box>
+
+                    {/* Desktop UI: Bulk Editor Sidebar */}
+                    {!isMobile && (
+                        <HImageEditorBulkDekstop
+                            activePanel={editor2.activePanel}
+                            setActivePanel={editor2.setActivePanel}
+                            onScale={handleScale}
+                            onBeforeAfter={handleBeforeAfter}
+                            isPanelOpen={!isMobile}
+                            anchorElZoom={editor2.anchorMenuZoom}
+                            onZoomMenuClose={() => editor2.setAnchorMenuZoom(null)}
+                            onZoomAction={editor2.handleZoomAction}
+                            footer={
+                                <HFooter
+                                    anchorElZoom={editor2.anchorMenuZoom}
+                                    onScale={(event: React.MouseEvent<HTMLElement>) => editor2.setAnchorMenuZoom(event.currentTarget)}
+                                    onShowOriginal={editor2.handleShowOriginal}
+                                    onShowEdited={editor2.handleShowEdited}
+                                    onZoomMenuClose={() => editor2.setAnchorMenuZoom(null)}
+                                    onZoomAction={editor2.handleZoomAction}
+                                    zoomLevelText={editor2.zoomLevelText} 
+                                />
+                            }
+                        >
+                            {renderActivePanelBulk()}
+                        </HImageEditorBulkDekstop>
+                    )}
+
+                    {/* Mobile UI: Bulk Editor Draggable Panel */}
+                    {isMobile && (
+                        <HImageEditorBulkMobile
+                            presets={editor2.presets}
+                            contentRef={editor2.contentRef}
+                            panelRef={editor2.panelRef}
+                            panelHeight={editor2.panelHeight}
+                            handleDragStart={editor2.handleDragStart}
+                            onContentHeightChange={editor2.handleContentHeightChange}
+                            activePanel={editor2.activePanel}
+                            setActivePanel={(panel) => { editor2.setActivePanel(panel); editor2.setActiveSubPanel(''); }}
+                            activeSubPanel={editor2.activeSubPanel}
+                            setActiveSubPanel={editor2.setActiveSubPanel}
+                            
+                            // Color Adjustments
+                            onTempDecreaseMax={editor.handleBulkTempDecreaseMax}
+                            onTempDecrease={editor.handleBulkTempDecrease}
+                            onTempIncrease={editor.handleBulkTempIncrease}
+                            onTempIncreaseMax={editor.handleBulkTempIncreaseMax}
+                            onTintDecreaseMax={editor.handleBulkTintDecreaseMax}
+                            onTintDecrease={editor.handleBulkTintDecrease}
+                            onTintIncrease={editor.handleBulkTintIncrease}
+                            onTintIncreaseMax={editor.handleBulkTintIncreaseMax}
+                            onVibranceDecreaseMax={editor.handleBulkVibranceDecreaseMax}
+                            onVibranceDecrease={editor.handleBulkVibranceDecrease}
+                            onVibranceIncrease={editor.handleBulkVibranceIncrease}
+                            onVibranceIncreaseMax={editor.handleBulkVibranceIncreaseMax}
+                            onSaturationDecreaseMax={editor.handleBulkSaturationDecreaseMax}
+                            onSaturationDecrease={editor.handleBulkSaturationDecrease}
+                            onSaturationIncrease={editor.handleBulkSaturationIncrease}
+                            onSaturationIncreaseMax={editor.handleBulkSaturationIncreaseMax}
+                            // Adjustments Light
+                            onExposureDecreaseMax= {editor.handleBulkExposureDecreaseMax}
+                            onExposureDecrease= {editor.handleBulkExposureDecrease}
+                            onExposureIncrease= {editor.handleBulkExposureIncrease}
+                            onExposureIncreaseMax= {editor.handleBulkExposureIncreaseMax}
+                            onContrastDecreaseMax= {editor.handleBulkContrastDecreaseMax}
+                            onContrastDecrease= {editor.handleBulkContrastDecrease}
+                            onContrastIncrease= {editor.handleBulkContrastIncrease}
+                            onContrastIncreaseMax= {editor.handleBulkContrastIncreaseMax}
+                            onHighlightsDecreaseMax= {editor.handleBulkHighlightsDecreaseMax}
+                            onHighlightsDecrease= {editor.handleBulkHighlightsDecrease}
+                            onHighlightsIncrease= {editor.handleBulkHighlightsIncrease}
+                            onHighlightsIncreaseMax= {editor.handleBulkHighlightsIncreaseMax}
+                            onShadowsDecreaseMax= {editor.handleBulkShadowsDecreaseMax}
+                            onShadowsDecrease= {editor.handleBulkShadowsDecrease}
+                            onShadowsIncrease= {editor.handleBulkShadowsIncrease}
+                            onShadowsIncreaseMax= {editor.handleBulkShadowsIncreaseMax}
+                            onWhitesDecreaseMax= {editor.handleBulkWhitesDecreaseMax}
+                            onWhitesDecrease= {editor.handleBulkWhitesDecrease}
+                            onWhitesIncrease= {editor.handleBulkWhitesIncrease}
+                            onWhitesIncreaseMax= {editor.handleBulkWhitesIncreaseMax}
+                            onBlacksDecreaseMax= {editor.handleBulkBlacksDecreaseMax}
+                            onBlacksDecrease= {editor.handleBulkBlacksDecrease}
+                            onBlacksIncrease= {editor.handleBulkBlacksIncrease}
+                            onBlacksIncreaseMax= {editor.handleBulkBlacksIncreaseMax}
+                            // Adjustments Details
+                            onClarityDecreaseMax={editor.handleBulkClarityDecreaseMax}
+                            onClarityDecrease={editor.handleBulkClarityDecrease}
+                            onClarityIncrease={editor.handleBulkClarityIncrease}
+                            onClarityIncreaseMax={editor.handleBulkClarityIncreaseMax}
+                            onSharpnessDecreaseMax={editor.handleBulkSharpnessDecreaseMax}
+                            onSharpnessDecrease={editor.handleBulkSharpnessDecrease}
+                            onSharpnessIncrease={editor.handleBulkSharpnessIncrease}
+                            onSharpnessIncreaseMax={editor.handleBulkSharpnessIncreaseMax}
+
+                            selectedPresetBulk={editor.selectedBulkPreset}
+                            onOpenPresetModalBulk={editor2.handleOpenPresetModalMobile}
+                            onSelectPresetBulk={editor.handleSelectBulkPreset}
+                            onPresetMenuClickBulk={editor2.handlePresetMenuClick}
+                        />
+                    )}
+
+                    {/* Shared Modals and Menus */}
+                    <HPresetOptionsMenu
+                        anchorEl={editor2.presetMenuAnchorEl}
+                        isOpen={Boolean(editor2.presetMenuAnchorEl)}
+                        onClose={editor2.handlePresetMenuClose}
+                        onRemove={editor2.handleRemovePreset}
+                        onRename={editor2.handleOpenRenameModal}
+                        onDelete={editor2.handleDeletePreset}
+                        isPresetSelected={(editor.isBulkEditing ? editor.selectedBulkPreset : editor2.selectedDesktopPreset) === editor2.activePresetMenuId}
+                    />
+                    <HModalEditorDekstop
+                        modalName="preset"
+                        modalOpen={editor2.isPresetModalOpen}
+                        modalTitle="Create Preset"
+                        modalInformation="Choose settings to include in preset"
+                        action={
+                            <HDialogPreset
+                                colorChecks={editor2.copyColorChecks}
+                                lightChecks={editor2.copyLightChecks}
+                                detailsChecks={editor2.copyDetailsChecks}
+                                setColorChecks={editor2.setCopyColorChecks}
+                                setLightChecks={editor2.setCopyLightChecks}
+                                setDetailsChecks={editor2.setCopyDetailsChecks}
+                                expanded={editor2.copyDialogExpanded}
+                                onParentChange={editor2.handleCopyParentChange}
+                                onChildChange={editor2.handleCopyChildChange}
+                                onToggleExpand={editor2.handleToggleCopyDialogExpand}
+                            />
+                        }
+                        modalClose={editor2.handleClosePresetModal}
+                        onConfirm={editor2.handleCreatePreset}
+                    >
+                        <HTextField valueName={editor2.presetName} setName={editor2.handleNameChange} />
+                    </HModalEditorDekstop>
+                </Stack>
+            </Stack>
+        </>
+    )
 }
 
 export default function HImageEditorBulkPage() {
@@ -190,7 +513,7 @@ export default function HImageEditorBulkPage() {
     
     return (
         <Suspense fallback={fallbackUI}>
-            {/* <HImageEditorBulkClient /> */}
+            <HImageEditorBulkClient />
         </Suspense>
     );
 }
