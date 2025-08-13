@@ -77,6 +77,11 @@ const onGetToken = () => new Promise<string>((resolve, reject) => {
     }
 });
 
+const hasAdjustments = (state: AdjustmentState): boolean => {
+    if (!state) return false;
+    return Object.values(state).some(value => value !== 0);
+};
+
 // A placeholder controller for bulk-specific actions if needed
 const exposeBulkController: Controller = {
     onGetImage: async (firebaseUid: string, imageID: string) => {
@@ -328,8 +333,9 @@ function HImageEditorBulkClient() {
                                 overflowY: 'auto',
                             }}>
                                 {editor.imageList.map(image => {
-                                    const imageAdjustments = editor.adjustmentsMap.get(image.id) || {};
-                                    // const isEdited = hasAdjustments(imageAdjustments);
+                                    const imageAdjustments = editor.adjustmentsMap.get(image.id);
+                                    // Step 2: Check if this image has any non-zero adjustments
+                                    const isEdited = imageAdjustments ? hasAdjustments(imageAdjustments) : false;
 
                                     return (
                                         <Paper
@@ -352,9 +358,9 @@ function HImageEditorBulkClient() {
                                                 onChange={() => editor.handleToggleImageSelection(image.id)}
                                                 sx={{ position: 'absolute', top: 4, left: 4, color: 'common.white', '&.Mui-checked': { color: '#1976d2' }, backgroundColor: 'rgba(0, 0, 0, 0.5)', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.7)' } }}
                                             />
-                                            {/* {editor2.isEdited && (
+                                            {isEdited && (
                                                 <AutoFixHighIcon fontSize="small" sx={{ position: 'absolute', bottom: 8, right: 8, color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%', padding: '2px' }} />
-                                            )} */}
+                                            )}
                                         </Paper>
                                     );
                                 })}
