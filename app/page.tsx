@@ -341,7 +341,7 @@ function HImageEditorClient() {
 
     return (
         <>
-            {!isInitialLoadComplete && (
+            {isInitialLoadComplete && (
                 <>
                     <Script
                         src="/honcho-photo-editor.js"
