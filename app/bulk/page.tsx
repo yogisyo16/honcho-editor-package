@@ -149,18 +149,18 @@ const exposeBulkController: Controller = {
             throw err;
         }
     },
-    handleBack: (firebaseUid: string, currentImageId: string) => {
-        console.log("FireBaseUid:", firebaseUid, "CurrentImageId:", currentImageId);
+    handleBack: (firebaseUid: string, eventID: string) => {
+        console.log("FireBaseUid:", firebaseUid, "eventID:", eventID);
 
         // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-            console.log(`Sending imageId '${currentImageId}' to iOS native handler.`);
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${currentImageId}`);
+            console.log(`Sending imageId '${eventID}' to iOS native handler.`);
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${eventID}`);
         } 
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBack) {
-            console.log(`Sending imageId '${currentImageId}' to Android native handler.`);
-            (window as any).Android.goBack(currentImageId);
+            console.log(`Sending imageId '${eventID}' to Android native handler.`);
+            (window as any).Android.goBack(eventID);
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
@@ -184,8 +184,9 @@ const exposeBulkController: Controller = {
 };
 function HImageEditorBulkClient() {
     const [imageId, setimageId] = useState<string>("");
+    const [eventId, setEventId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
-    const editor = useHonchoEditorBulk(exposeBulkController, imageId, firebaseId);
+    const editor = useHonchoEditorBulk(exposeBulkController, eventId, firebaseId);
     const editor2 = useHonchoEditor(exposeBulkController, imageId, firebaseId);
     const isMobile = useIsMobile();
     const colors = useColors();
@@ -294,7 +295,7 @@ function HImageEditorBulkClient() {
                 {editor2.showCopyAlert && <HAlertCopyBox />}
 
                 <HHeaderEditor
-                    onBack={editor2.handleBackCallback}
+                    onBack={editor.handleBackCallbackBulk}
                     onUndo={editor2.handleUndo}
                     onRedo={editor2.handleRedo}
                     onRevert={editor2.handleRevert}
