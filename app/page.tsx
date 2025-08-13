@@ -201,24 +201,6 @@ function HImageEditorClient() {
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
 
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const params = new URLSearchParams(window.location.search);
-            const imageIdFromUrl = params.get("imageID");
-            const firebaseUidFromUrl = params.get("firebaseUID");
-            if (imageIdFromUrl) setimageId(imageIdFromUrl);
-            if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
-        }
-    }, []);
-
-    useEffect(() => {
-        // If the image is loaded AND our initial load flag is still false...
-        if (editor.isImageLoaded && !isInitialLoadComplete) {
-            // ...then the initial load is now complete.
-            setIsInitialLoadComplete(true);
-        }
-    }, [editor.isImageLoaded, isInitialLoadComplete]);
-
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
 
@@ -333,6 +315,24 @@ function HImageEditorClient() {
             />
         );
     }
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const imageIdFromUrl = params.get("imageID");
+            const firebaseUidFromUrl = params.get("firebaseUID");
+            if (imageIdFromUrl) setimageId(imageIdFromUrl);
+            if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
+        }
+    }, []);
+
+    useEffect(() => {
+        // If the image is loaded AND our initial load flag is still false...
+        if (editor.isImageLoaded && !isInitialLoadComplete) {
+            // ...then the initial load is now complete.
+            setIsInitialLoadComplete(true);
+        }
+    }, [editor.isImageLoaded, isInitialLoadComplete]);
 
     return (
         <>

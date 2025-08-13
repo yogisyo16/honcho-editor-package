@@ -278,6 +278,16 @@ function HImageEditorBulkClient() {
         }
     };
 
+    useEffect(() => {
+            if (typeof window !== "undefined") {
+                const params = new URLSearchParams(window.location.search);
+                const eventIdUrl = params.get("eventID");
+                const firebaseUidFromUrl = params.get("firebaseUID");
+                if (eventIdUrl) setEventId(eventIdUrl);
+                if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
+            }
+        }, []);
+
     return (
         <>
             <Script
