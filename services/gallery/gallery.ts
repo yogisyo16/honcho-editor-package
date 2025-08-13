@@ -11,6 +11,8 @@ import { BaseServices } from "@/services/commons/base";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:9091";
 
+// [GET] /api/v3/gallery/ids?gallery=id1,id2,id3
+
 export const api = Axios.create({
   baseURL: `${BASE_URL}`,
   timeout: 60000 * 2,
