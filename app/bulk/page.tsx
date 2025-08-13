@@ -333,8 +333,10 @@ function HImageEditorBulkClient() {
                                 overflowY: 'auto',
                             }}>
                                 {editor.imageList.map(image => {
+                                    // 1. Get the specific adjustments for THIS image from the map
                                     const imageAdjustments = editor.adjustmentsMap.get(image.id);
-                                    // Step 2: Check if this image has any non-zero adjustments
+                                    
+                                    // 2. Check if this image has any non-zero adjustments
                                     const isEdited = imageAdjustments ? hasAdjustments(imageAdjustments) : false;
 
                                     return (
@@ -352,12 +354,13 @@ function HImageEditorBulkClient() {
                                                 }
                                             }}
                                         >
-                                            <img src={image.url} />
+                                            <img src={image.url} alt={'Edited Image'} />
                                             <Checkbox
                                                 checked={editor.selectedImageIds.has(image.id)}
                                                 onChange={() => editor.handleToggleImageSelection(image.id)}
                                                 sx={{ position: 'absolute', top: 4, left: 4, color: 'common.white', '&.Mui-checked': { color: '#1976d2' }, backgroundColor: 'rgba(0, 0, 0, 0.5)', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.7)' } }}
                                             />
+                                            {/* 3. Conditionally render the icon based on the isEdited variable */}
                                             {isEdited && (
                                                 <AutoFixHighIcon fontSize="small" sx={{ position: 'absolute', bottom: 8, right: 8, color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%', padding: '2px' }} />
                                             )}

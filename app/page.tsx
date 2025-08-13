@@ -370,99 +370,94 @@ function HImageEditorClient() {
                         minHeight: 720
                     }}>
 
-                        {editor.isGalleryLoading ? (
-                            <CircularProgress color="inherit" />
-                        ) : editor.isImageLoaded ? (
-                            <Box
-                                sx={{
-                                    position: 'relative',
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}
-                                onTouchStart={handleTouchStart}
-                                onTouchMove={handleTouchMove}
-                                onTouchEnd={handleTouchEnd}>
-                                <canvas
-                                    ref={editor.canvasRef}
-                                    style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
-                                />
-                                {!isMobile && (
-                                    <>
-                                        <Button
-                                            size="medium"
-                                            sx={{
-                                                position: 'absolute',
-                                                top: '50%',
-                                                left: isMobile ? 10 : 200,
-                                                transform: 'translateY(-50%)',
-                                                zIndex: 2,
-                                                minWidth: 0,
-                                                borderRadius: '50%',
-                                                width: 40,
-                                                height: 40,
-                                                padding: 0,
-                                                opacity: isPrevHovered ? 1 : 0, // Only visible on hover
-                                                transition: 'opacity 0.4s',
-                                                backgroundColor: colors.onBackground,
-                                                color: colors.surface,
-                                                '&:hover': {
-                                                    backgroundColor: colors.onBackground,
-                                                }
-                                            }}
-                                            onClick={() => editor.onSwipePrev()}
-                                            onMouseEnter={() => setIsPrevHovered(true)}
-                                            onMouseLeave={() => setIsPrevHovered(false)}
-                                            aria-label="Previous Image"
-                                        >
-                                            <ArrowBackIosNewIcon fontSize="small" />
-                                        </Button>
-                                        {/* Next Button */}
-                                        <Button
-                                            size="medium"
-                                            sx={{
-                                                position: 'absolute',
-                                                top: '50%',
-                                                right: isMobile ? 10 : 200,
-                                                transform: 'translateY(-50%)',
-                                                zIndex: 2,
-                                                minWidth: 0,
-                                                borderRadius: '50%',
-                                                width: '48px',
-                                                height: '48px',
-                                                padding: 0,
-                                                opacity: isNextHovered ? 1 : 0, // Only visible on hover
-                                                transition: 'opacity 0.4s',
-                                                backgroundColor: colors.onBackground,
-                                                color: colors.surface,
-                                                '&:hover': {
-                                                    backgroundColor: colors.onBackground,
-                                                }
-                                            }}
-                                            onClick={() => editor.onSwipeNext()}
-                                            onMouseEnter={() => setIsNextHovered(true)}
-                                            onMouseLeave={() => setIsNextHovered(false)}
-                                            aria-label="Next Image"
-                                        >
-                                            <ArrowForwardIosIcon fontSize="small" />
-                                        </Button>
-                                        
-                                    </>
-                                )}
+                        {!editor.isImageLoaded ? (
+                            <Box onClick={() => editor.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed grey', borderRadius: 2, p: 4, cursor: editor.isEditorReady ? 'pointer' : 'default', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
+                                {!editor.isEditorReady && <CircularProgress color="inherit" sx={{ mb: 2 }} />}
                             </Box>
-                        ):(
-                            <Box sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <Typography sx={{ color: 'grey.500' }}>
-                                    {editor.galleryError ? "Failed to load image." : "Initializing..."}
-                                </Typography>
-                            </Box>
+                        ) : (
+                            (
+                                // Canvas for Single Edit
+                                <Box
+                                    sx={{
+                                        position: 'relative',
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                    onTouchStart={handleTouchStart}
+                                    onTouchMove={handleTouchMove}
+                                    onTouchEnd={handleTouchEnd}>
+                                    <canvas
+                                        ref={editor.canvasRef}
+                                        style={{ display: 'block', maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
+                                    />
+                                    {!isMobile && (
+                                        <>
+                                            <Button
+                                                size="medium"
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: '50%',
+                                                    left: isMobile ? 10 : 200,
+                                                    transform: 'translateY(-50%)',
+                                                    zIndex: 2,
+                                                    minWidth: 0,
+                                                    borderRadius: '50%',
+                                                    width: 40,
+                                                    height: 40,
+                                                    padding: 0,
+                                                    opacity: isPrevHovered ? 1 : 0, // Only visible on hover
+                                                    transition: 'opacity 0.4s',
+                                                    backgroundColor: colors.onBackground,
+                                                    color: colors.surface,
+                                                    '&:hover': {
+                                                        backgroundColor: colors.onBackground,
+                                                    }
+                                                }}
+                                                onClick={() => editor.onSwipePrev()}
+                                                onMouseEnter={() => setIsPrevHovered(true)}
+                                                onMouseLeave={() => setIsPrevHovered(false)}
+                                                aria-label="Previous Image"
+                                            >
+                                                <ArrowBackIosNewIcon fontSize="small" />
+                                            </Button>
+
+                                            {/* Next Button */}
+                                            <Button
+                                                size="medium"
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: '50%',
+                                                    right: isMobile ? 10 : 200,
+                                                    transform: 'translateY(-50%)',
+                                                    zIndex: 2,
+                                                    minWidth: 0,
+                                                    borderRadius: '50%',
+                                                    width: '48px',
+                                                    height: '48px',
+                                                    padding: 0,
+                                                    opacity: isNextHovered ? 1 : 0, // Only visible on hover
+                                                    transition: 'opacity 0.4s',
+                                                    backgroundColor: colors.onBackground,
+                                                    color: colors.surface,
+                                                    '&:hover': {
+                                                        backgroundColor: colors.onBackground,
+                                                    }
+                                                }}
+                                                onClick={() => editor.onSwipeNext()}
+                                                onMouseEnter={() => setIsNextHovered(true)}
+                                                onMouseLeave={() => setIsNextHovered(false)}
+                                                aria-label="Next Image"
+                                            >
+                                                <ArrowForwardIosIcon fontSize="small" />
+                                            </Button>
+                                            
+                                        </>
+                                    )}
+                                </Box>
+                            )
                         )}
                     </Box>
 
