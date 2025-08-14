@@ -192,17 +192,56 @@ const exposeController: Controller = {
         console.log("syncConfig called");
     },
     getPresets: async (firebaseUid: string) => {
-        console.log("Fetching presets for:", firebaseUid);
-        try {
-            const token = await onGetToken();
-            const res = await getPresets(token);
-            // The API returns: { code, data: { presets: Preset[] }, ... }
-            return res.data?.presets || [];
-        } catch (err) {
-            console.error("getPresets error:", err);
-            return [];
-        }
-    },
+        if (process.env.NEXT_PUBLIC_USE_MOCK === "true") {
+        console.log("[MOCK] getPresets for:", firebaseUid);
+        return [
+            {
+                id: "678506a9b978174d1e9eba19",
+                name: "Preset 202506 - 114",
+                is_default: true,
+                temperature: 70,
+                tint: 20,
+                saturation: 20,
+                vibrance: 10,
+                exposure: 23,
+                contrast: -20,
+                highlights: 50,
+                shadows: 0,
+                whites: 30,
+                blacks: -20,
+                clarity: 0,
+                sharpness: 50,
+            },
+            {
+                id: "679506a9b978174d1e9eba20",
+                name: "Preset 202506 - 115",
+                is_default: true,
+                temperature: 70,
+                tint: 20,
+                saturation: 20,
+                vibrance: 10,
+                exposure: 23,
+                contrast: -20,
+                highlights: 50,
+                shadows: 0,
+                whites: 30,
+                blacks: -20,
+                clarity: 0,
+                sharpness: 50,
+            }
+        ];
+    }
+
+    // Real API call
+    try {
+        const token = await onGetToken();
+        const res = await getPresets(token);
+        return res.data?.presets || [];
+    } catch (err) {
+        console.error("getPresets error:", err);
+        return [];
+    }
+},
 
     createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState): Promise<void> => {
         console.log("Calling real createPreset service for:", name);
