@@ -28,7 +28,8 @@ import {
     HAlertPresetSave,
     HAlertInternetConnectionBox,
     AlbumImageGallery,
-    SimplifiedAlbumGallery,
+    ExtendedPhotoData,
+    EditorProvider,
     
     // Theme & Utility Hooks
     useColors,
@@ -279,6 +280,10 @@ function HImageEditorBulkClient() {
         }
     };
 
+    const handleToggleSelect = (photo: ExtendedPhotoData) => {
+        editor.handleToggleImageSelection(photo.key);
+    }  
+
     // Effect to get URL params
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -337,14 +342,12 @@ function HImageEditorBulkClient() {
                         ) : (
                             // --- THESE LINES NOW WORK PERFECTLY ---
                             <AlbumImageGallery
-                                imageCollection={editor.imageCollection}
-                                isSelectedMode={editor.isSelectedMode}
-                                onSelectedMode={editor.handleSelectedMode}
-                                onToggleSelect={(photo) => editor.handleToggleSelect(photo)}
-                                onPreview={(photo) => editor.handlePreview(photo)}
-                                isHiddenGallery={false}
-                                enableEditor={false}
-                            />
+                                            imageCollection={editor.imageCollection}
+                                            onToggleSelect={handleToggleSelect}
+                                            isHiddenGallery={false}
+                                            enableEditor={false} isSelectedMode={false} onSelectedMode={function (): void {
+                                                throw new Error("Function not implemented.");
+                                            } }                            />
                         )}
                     </Box>
 
@@ -456,7 +459,6 @@ function HImageEditorBulkClient() {
                         onRemove={editor2.handleRemovePreset}
                         onRename={editor2.handleOpenRenameModal}
                         onDelete={editor2.handleDeletePreset}
-                        isPresetSelected={(editor.isBulkEditing ? editor.selectedBulkPreset : editor2.selectedDesktopPreset) === editor2.activePresetMenuId}
                     />
                     <HModalEditorDekstop
                         modalName="preset"
@@ -498,8 +500,10 @@ export default function HImageEditorBulkPage() {
     );
     
     return (
-        <Suspense fallback={fallbackUI}>
-            <HImageEditorBulkClient />
-        </Suspense>
+        <EditorProvider>
+            <Suspense fallback={fallbackUI}>
+                <HImageEditorBulkClient />
+            </Suspense>
+        </EditorProvider>
     );
 }
