@@ -336,21 +336,15 @@ function HImageEditorBulkClient() {
                             </Typography>
                         ) : (
                             // --- THESE LINES NOW WORK PERFECTLY ---
-                            // <AlbumImageGallery
-                            //     imageCollection={editor.imageCollection}
-                            //     isSelectedMode={editor.isSelectedMode}
-                            //     onSelectedMode={editor.handleSelectedMode}
-                            //     onToggleSelect={editor.handleToggleSelect}
-                            //     onPreview={editor.handlePreview}
-                            //     isHiddenGallery={false}
-                            //     enableEditor={false}
-                            // />
-                            // <SimplifiedAlbumGallery
-                            //     imageCollection={editor.imageCollection}
-                            //     onToggleSelect={handleToggleSelect}
-                            //     onPreview={handlePreview}
-                            // />
-                            <></>
+                            <AlbumImageGallery
+                                imageCollection={editor.imageCollection}
+                                isSelectedMode={editor.isSelectedMode}
+                                onSelectedMode={editor.handleSelectedMode}
+                                onToggleSelect={(photo) => () => editor.handleToggleSelect}
+                                onPreview={(photo) => () => editor.handlePreview}
+                                isHiddenGallery={false}
+                                enableEditor={false}
+                            />
                         )}
                     </Box>
 
