@@ -431,7 +431,7 @@ function HImageEditorClient() {
             case 'preset':
                 return (
                     <HAccordionPreset
-                        presets={editor.presets}
+                        presets={presetEditor.presets}
                         expandedPanels={editor.presetExpandedPanels}
                         onChange={editor.handlePresetAccordionChange}
                         onOpenPresetModal={editor.handleOpenPresetModal}
@@ -444,7 +444,11 @@ function HImageEditorClient() {
                         activePresetMenuId={editor.activePresetMenuId}
                         onRemovePreset={editor.handleRemovePreset}
                         onRenamePreset={editor.handleOpenRenameModal}
-                        onDeletePreset={editor.handleDeletePreset}
+                        onDeletePreset={() => {
+                            if (editor.activePresetMenuId) {
+                                presetEditor.actions.delete(editor.activePresetMenuId);
+                            }
+                        }}
                     />
                 );
             default: return null;
@@ -477,6 +481,14 @@ function HImageEditorClient() {
             setIsInitialLoadComplete(true);
         }
     }, [editor.isImageLoaded, isInitialLoadComplete]);
+
+    useEffect(() => {
+        // We only load if we have a valid firebaseId and the preset hook is ready
+        if (firebaseId && presetEditor.actions.load) {
+            console.log("[usePreset] Triggering load for firebaseId:", firebaseId);
+            presetEditor.actions.load();
+        }
+    }, [firebaseId, presetEditor.actions.load]);
 
     return (
         <>
@@ -698,7 +710,11 @@ function HImageEditorClient() {
                         onClose={editor.handlePresetMenuClose}
                         onRemove={editor.handleRemovePreset}
                         onRename={() => { presetEditor.actions.rename }}
-                        onDelete={() => { presetEditor.actions.delete }}
+                        onDelete={() => {
+                            if (editor.activePresetMenuId) {
+                                presetEditor.actions.delete(editor.activePresetMenuId);
+                            }
+                        }}
                     />
                     <HModalEditorDekstop
                         modalName="preset"
@@ -720,7 +736,7 @@ function HImageEditorClient() {
                             />
                         }
                         modalClose={editor.handleClosePresetModal}
-                        onConfirm={() => { presetEditor.actions.create }}
+                        onConfirm={() => presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState)}
                     >
                         <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                     </HModalEditorDekstop>
@@ -730,7 +746,7 @@ function HImageEditorClient() {
                         modalTitle="Create Preset"
                         modalInformation="Create a preset with the current Light, Colour and Details settings"
                         modalClose={editor.handleClosePresetModalMobile}
-                        onConfirm={() => { presetEditor.actions.create }}
+                        onConfirm={() => presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState)}
                     >
                         <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                     </HModalMobile>

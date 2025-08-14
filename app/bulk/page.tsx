@@ -31,6 +31,7 @@ import {
     HAlertInternetConnectionBox,
     AlbumImageGallery,
     EditorProvider,
+    usePreset,
     
     // Theme & Utility Hooks
     useColors,
@@ -265,6 +266,7 @@ function HImageEditorBulkClient() {
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditorBulk(exposeBulkController, eventId, firebaseId);
     const editor2 = useHonchoEditor(exposeBulkController, imageId, firebaseId);
+    const presetEditor = usePreset(exposeBulkController, firebaseId);
     const [isSelectedMode, setIsSelectedMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -350,7 +352,11 @@ function HImageEditorBulkClient() {
                         onPresetMenuClose={editor2.handlePresetMenuClose}
                         onRemovePreset={editor2.handleRemovePreset}
                         onRenamePreset={editor2.handleOpenRenameModal}
-                        onDeletePreset={editor2.handleDeletePreset}
+                        onDeletePreset={() => {
+                            if (editor2.activePresetMenuId) {
+                                presetEditor.actions.delete(editor2.activePresetMenuId);
+                            }
+                        }}
                         onOpenPresetModal={editor2.handleOpenPresetModal}
                     />
                 );
@@ -532,7 +538,11 @@ function HImageEditorBulkClient() {
                         onClose={editor2.handlePresetMenuClose}
                         onRemove={editor2.handleRemovePreset}
                         onRename={editor2.handleOpenRenameModal}
-                        onDelete={editor2.handleDeletePreset}
+                        onDelete={() => {
+                            if (editor2.activePresetMenuId) {
+                                presetEditor.actions.delete(editor2.activePresetMenuId);
+                            }
+                        }}
                     />
                     <HModalEditorDekstop
                         modalName="preset"
@@ -554,7 +564,7 @@ function HImageEditorBulkClient() {
                             />
                         }
                         modalClose={editor2.handleClosePresetModal}
-                        onConfirm={editor2.handleCreatePreset}
+                        onConfirm={() => presetEditor.actions.create(editor2.presetName, editor2.currentAdjustmentsState)}
                     >
                         <HTextField valueName={editor2.presetName} setName={editor2.handleNameChange} />
                     </HModalEditorDekstop>
