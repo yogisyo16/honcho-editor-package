@@ -8,7 +8,7 @@ import { ColorAdjustment } from "@/services/commons/types";
 export async function getPresets(): Promise<Content> {
     try {
         const res: Content = await api
-            .get<Content>("/api/v3/user/presets")
+            .get<Content>("/v3/user/presets")
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e));
         
         if (res.code >= 300) {
@@ -34,7 +34,7 @@ export async function createPreset(name: string, adjustments: ColorAdjustment): 
 
     try {
         const res: Content = await api
-            .post<Content>("/api/v3/presets", requestBody)
+            .post<Content>("/v3/presets", requestBody)
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
     
         if (res.code >= 300) {
@@ -55,7 +55,7 @@ export async function createPreset(name: string, adjustments: ColorAdjustment): 
 export async function updatePreset(id: string, name: string, adjustments: ColorAdjustment): Promise<Content> {
     try {
         const res: Content = await api
-            .put<Content>(`/api/v3/presets/${id}`, { name, adjustments })
+            .put<Content>(`/v3/presets/${id}`, { name, adjustments })
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
 
         if (res.code >= 300) {
@@ -76,7 +76,7 @@ export async function updatePreset(id: string, name: string, adjustments: ColorA
 export async function deletePreset(id: string): Promise<Content> {
     try {
         const res: Content = await api
-            .delete<Content>(`/api/v3/presets/${id}`)
+            .delete<Content>(`/v3/presets/${id}`)
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
 
         if (res.code >= 300) {
