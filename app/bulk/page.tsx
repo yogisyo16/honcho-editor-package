@@ -149,18 +149,18 @@ const exposeBulkController: Controller = {
             throw err;
         }
     },
-    handleBack: (firebaseUid: string, eventID: string) => {
-        console.log("FireBaseUid:", firebaseUid, "eventID:", eventID);
+    handleBack: (firebaseUid: string, lastImageID: string) => {
+        console.log("FireBaseUid:", firebaseUid, "lastImageID:", lastImageID);
 
         // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
-            console.log(`Sending imageId '${eventID}' to iOS native handler.`);
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${eventID}`);
+            console.log(`Sending imageId '${lastImageID}' to iOS native handler.`);
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${lastImageID}`);
         } 
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBack) {
-            console.log(`Sending imageId '${eventID}' to Android native handler.`);
-            (window as any).Android.goBack(eventID);
+            console.log(`Sending imageId '${lastImageID}' to Android native handler.`);
+            (window as any).Android.goBack(lastImageID);
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
