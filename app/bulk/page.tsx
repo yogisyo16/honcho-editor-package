@@ -323,7 +323,7 @@ function HImageEditorBulkClient() {
                     direction={isMobile ? "column" : "row"}
                     justifyContent="space-between"
                     alignItems="stretch"
-                    sx={{ width: '100%', flexGrow: 1, overflow: 'hidden' }}
+                    sx={{ width: '100%', flexGrow: 1, overflow: isMobile ? 'auto' : 'hidden' }}
                 >
                     <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', width: '100%' }}>
                         {editor.isLoading ? (
