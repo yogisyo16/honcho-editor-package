@@ -28,6 +28,7 @@ import {
     HAlertPresetSave,
     HAlertInternetConnectionBox,
     AlbumImageGallery,
+    SimplifiedAlbumGallery,
     
     // Theme & Utility Hooks
     useColors,
@@ -152,7 +153,7 @@ const exposeBulkController: Controller = {
         // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
             console.log(`Sending imageId '${lastImageID}' to iOS native handler.`);
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${lastImageID}`);
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBackBulk_${lastImageID}`);
         } 
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBack) {
@@ -185,7 +186,6 @@ function HImageEditorBulkClient() {
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditorBulk(exposeBulkController, eventId, firebaseId);
     const editor2 = useHonchoEditor(exposeBulkController, imageId, firebaseId);
-    const [imageCollection, setImageCollection] = useState<PhotoData[]>([]);
     const [isSelectedMode, setIsSelectedMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -344,6 +344,11 @@ function HImageEditorBulkClient() {
                             //     onPreview={editor.handlePreview}
                             //     isHiddenGallery={false}
                             //     enableEditor={false}
+                            // />
+                            // <SimplifiedAlbumGallery
+                            //     imageCollection={editor.imageCollection}
+                            //     onToggleSelect={handleToggleSelect}
+                            //     onPreview={handlePreview}
                             // />
                             <></>
                         )}
