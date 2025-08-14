@@ -325,7 +325,7 @@ function HImageEditorBulkClient() {
                     alignItems="stretch"
                     sx={{ width: '100%', flexGrow: 1, overflow: 'hidden' }}
                 >
-                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', overflow: 'hidden' }}>
+                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', overflow: 'hidden', width: '100%' }}>
                         {editor.isLoading ? (
                             <CircularProgress sx={{ color: colors.onSurfaceVariant }} />
                         ) : editor.error ? (
