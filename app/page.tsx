@@ -266,9 +266,9 @@ const exposeController: Controller = {
 if (typeof window !== "undefined") {
     // Give it a unique namespace to avoid polluting global scope
     (window as any).__presetTest = {
-        getPresets: (uid: string) => exposeController.getPresets(uid),
+        getPresets: (uid: string) => exposeController.getPresets("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1").then(console.log),
         createPreset: (uid: string, name: string, adjustments: any) => exposeController.createPreset(uid, name, adjustments),
-        updatePreset: (uid: string, preset: any) => exposeController.updatePreset(uid, preset),
+        updatePreset: (uid: string, preset: any) => exposeController.updatePreset("678506a9b978174d1e9eba19", preset).then(console.log),
         deletePreset: (uid: string, id: string) => exposeController.deletePreset(uid, id),
     };
     console.log(
