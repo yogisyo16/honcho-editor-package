@@ -345,9 +345,7 @@ function HImageEditorBulkClient() {
                                             imageCollection={editor.imageCollection}
                                             onToggleSelect={handleToggleSelect}
                                             isHiddenGallery={false}
-                                            enableEditor={false} isSelectedMode={false} onSelectedMode={function (): void {
-                                                throw new Error("Function not implemented.");
-                                            } }                            />
+                                            enableEditor={false} isSelectedMode={false}                         />
                         )}
                     </Box>
 
