@@ -98,7 +98,8 @@ const onGetToken = () => new Promise<string>((resolve, reject) => {
         }
     }
     else {
-        reject("Not a mobile environment");
+        console.warn("Not a mobile environment — using dummy token for web testing");
+        resolve("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1");
     }
 });
 
