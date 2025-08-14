@@ -1,45 +1,94 @@
+import { api } from "@/services/commons/base";
+import { AxiosResponse } from "axios";
+import { handleResponse } from "@/services/commons/base";
 import { Content } from "@/types";
 import { ColorAdjustment } from "@/services/commons/types";
-import { Observable } from "rxjs/internal/Observable";
-import Axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
-import { BaseServices } from "@/services/commons/base";
 
-export interface PresetServices {
-    listPresets(): Observable<Content>;
-    createPresets(id: string, name: string, adjustments: ColorAdjustment): Observable<Content>;
-    updatePresets(id: string, name: string, adjustments: ColorAdjustment): Observable<Content>;
-    deletePresets(id: string): Observable<Content>;
-    getPresets(id: string): Observable<Content>;
+// GET list of presets
+export async function getPresets(): Promise<Content> {
+    try {
+        const res: Content = await api
+            .get<Content>("/api/v3/user/presets")
+            .then((e: AxiosResponse<Content>) => handleResponse<Content>(e));
+        
+        if (res.code >= 300) {
+            const err: any = Error(`${res.code}: ${res.error_message}`);
+            err.code = res.code;
+            err.error_message = res.error_message;
+            throw err;
+        }
+
+        return res;
+    } catch (err) {
+        console.error("Failed to fetch presets:", err);
+        throw err;
+    }
 }
 
-export class PresetServicesImpl extends BaseServices implements PresetServices {
-    constructor(axios: AxiosInstance) {
-        super(axios);
-    }
+// CREATE new preset
+export async function createPreset(name: string, adjustments: ColorAdjustment): Promise<Content> {
+    const requestBody = {
+        name,
+        ...adjustments
+    };
 
-    listPresets(): Observable<Content> {
-        // Correctly calls the endpoint with no parameters
-        return this.axiosGetObservable(`/api/v3/user/presets`);
+    try {
+        const res: Content = await api
+            .post<Content>("/api/v3/presets", requestBody)
+            .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
+    
+        if (res.code >= 300) {
+            const err: any = Error(`${res.code}: ${res.error_message}`);
+            err.code = res.code;
+            err.error_message = res.error_message;
+            throw err;
+        }
+    
+        return res;
+    } catch (err) {
+        console.error("Failed to create preset:", err);
+        throw err;
     }
-    createPresets(id: string, name: string, adjustments: ColorAdjustment): Observable<Content> {
-        // The URL should not contain query parameters according to the proposal.
-        // The body must be a flat object, combining name and the adjustments.
-        const requestBody = {
-            name,
-            ...adjustments // Spread the properties of adjustments into the main object
-        };
+}
 
-        // Note: The 'id' (event_id) parameter is removed from the URL
-        // to match the provided API documentation.
-        return this.axiosPostObservable(`/api/v3/presets`, requestBody);
+// UPDATE preset
+export async function updatePreset(id: string, name: string, adjustments: ColorAdjustment): Promise<Content> {
+    try {
+        const res: Content = await api
+            .put<Content>(`/api/v3/presets/${id}`, { name, adjustments })
+            .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
+
+        if (res.code >= 300) {
+            const err: any = Error(`${res.code}: ${res.error_message}`);
+            err.code = res.code;
+            err.error_message = res.error_message;
+            throw err;
+        }
+
+        return res;
+    } catch (err) {
+        console.error("Failed to update preset:", err);
+        throw err;
     }
-    updatePresets(id: string, name: string, adjustments: ColorAdjustment): Observable<Content> {
-        return this.axiosPutObservable(`/api/v3/presets/${id}`, { name, adjustments });
-    }
-    deletePresets(id: string): Observable<Content> {
-        return this.axiosDeleteObservable(`/api/v3/presets/${id}`);
-    }
-    getPresets(id: string): Observable<Content> {
-        return this.axiosGetObservable(`/api/v3/presets/${id}`);
+}
+
+// DELETE preset
+export async function deletePreset(id: string): Promise<Content> {
+    try {
+        const res: Content = await api
+            .delete<Content>(`/api/v3/presets/${id}`)
+            .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
+
+        if (res.code >= 300) {
+            const err: any = Error(`${res.code}: ${res.error_message}`);
+            err.code = res.code;
+            err.error_message = res.error_message;
+            throw err;
+        }
+
+        return res;
+    } catch (err) {
+        console.error("Failed to delete preset:", err);
+        throw err;
     }
 }

@@ -8,7 +8,8 @@ import Script from 'next/script';
 import { ResponseGalleryPaging } from "@/types";
 import { GalleryServiceImpl } from "@/services/gallery/gallery";
 import { apiV3 } from "@/services/commons/base";
-import { PresetServicesImpl } from "@/services/presets/presets";
+import { getPresets, updatePreset, createPreset, deletePreset } from "@/services/presets/presets";
+import { ColorAdjustment } from "@/services/commons/types";
 import { firstValueFrom } from "rxjs";
 import {
     // Core Hook
@@ -34,6 +35,7 @@ import {
     HAlertCopyBox,
     HAlertPresetSave,
     HAlertInternetConnectionBox,
+    usePreset,
 
     // Theme & Utility Hooks
     useColors,
@@ -51,6 +53,23 @@ declare global {
         onReceiveToken?: (token: string, firebaseUid: string) => void;
     }
 }
+
+const mapAdjustmentStateToColorAdjustment = (state: AdjustmentState): ColorAdjustment => {
+    return {
+        temperature: state.tempScore,
+        tint: state.tintScore,
+        saturation: state.saturationScore,
+        vibrance: state.vibranceScore,
+        exposure: state.exposureScore,
+        contrast: state.contrastScore,
+        highlights: state.highlightsScore,
+        shadows: state.shadowsScore,
+        whites: state.whitesScore,
+        blacks: state.blacksScore,
+        clarity: state.clarityScore,
+        sharpness: state.sharpnessScore,
+    };
+};
 
 if (typeof window !== "undefined") {
     window.onReceiveToken = (token: string, firebaseUid: string) => {
@@ -93,7 +112,7 @@ const exposeController: Controller = {
             const token = await onGetToken().catch(err => {
                 console.error(err);
                 // Re-throw a more specific error if token fetching fails
-                throw new Error("Failed to get authentication token from native app."); 
+                throw new Error("Failed to get authentication token from native app.");
             });
 
             if (!token) {
@@ -156,7 +175,8 @@ const exposeController: Controller = {
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
             console.log(`Sending imageId '${currentImageId}' to iOS native handler.`);
             (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${currentImageId}`);
-        } 
+        }
+
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBack) {
             console.log(`Sending imageId '${currentImageId}' to Android native handler.`);
@@ -168,18 +188,78 @@ const exposeController: Controller = {
         }
     },
     syncConfig: async (firebaseUid: string) => {
-        console.log("syncConfig called")
+        console.log("syncConfig called");
     },
     getPresets: async (firebaseUid: string) => {
-        console.log("getPresets called")
-        return [];
+        console.log("Fetching presets for:", firebaseUid);
+        try {
+            const res = await getPresets();
+            // The API returns: { code, data: { presets: Preset[] }, ... }
+            return res.data?.presets || [];
+        } catch (err) {
+            console.error("getPresets error:", err);
+            return [];
+        }
     },
-    createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState) => {
-        console.log("createPreset called")
-        return {} as Preset;
+
+    createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState): Promise<void> => {
+        console.log("Calling real createPreset service for:", name);
+
+        const apiAdjustments = mapAdjustmentStateToColorAdjustment(settings);
+
+        try {
+            const res = await createPreset(name, apiAdjustments);
+
+            if (res.code === 200 || res.code === 202) {
+                // If backend returns the preset, use it; otherwise make a placeholder
+                return res.data?.preset || { id: new Date().toISOString(), name };
+            }
+            throw new Error(`Failed to create preset. Status code: ${res.code}`);
+        } catch (error) {
+            console.error("Failed to create preset via API:", error);
+            throw error;
+        }
     },
+
     deletePreset: async (firebaseUid: string, presetId: string) => {
-        console.log("deletePreset called")
+        console.log("Deleting preset:", presetId);
+        try {
+            await deletePreset(presetId);
+        } catch (error) {
+            console.error("Failed to delete preset via API:", error);
+            throw error;
+        }
+    },
+    updatePreset: async (firebaseUid: string, data: Preset): Promise<void> => {
+        console.log("Updating preset:", data);
+
+        const apiAdjustments = mapAdjustmentStateToColorAdjustment({
+            tempScore: data.temperature,
+            tintScore: data.tint,
+            saturationScore: data.saturation,
+            vibranceScore: data.vibrance,
+            exposureScore: data.exposure,
+            contrastScore: data.contrast,
+            highlightsScore: data.highlights,
+            shadowsScore: data.shadows,
+            whitesScore: data.whites,
+            blacksScore: data.blacks,
+            clarityScore: data.clarity,
+            sharpnessScore: data.sharpness,
+        });
+
+        try {
+            const res = await updatePreset(data.id, data.name, apiAdjustments);
+
+            if (res.code === 200) {
+                // If the backend returns updated preset
+                return res.data?.preset || data;
+            }
+            throw new Error(`Failed to update preset. Status code: ${res.code}`);
+        } catch (error) {
+            console.error("Failed to update preset via API:", error);
+            throw error;
+        }
     },
 };
 
@@ -201,6 +281,7 @@ function HImageEditorClient() {
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
+    const presetEditor = usePreset(exposeController, firebaseId);
 
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
@@ -554,9 +635,8 @@ function HImageEditorClient() {
                         isOpen={Boolean(editor.presetMenuAnchorEl)}
                         onClose={editor.handlePresetMenuClose}
                         onRemove={editor.handleRemovePreset}
-                        onRename={editor.handleOpenRenameModal}
-                        onDelete={editor.handleDeletePreset}
-                        // isPresetSelected={(editor.isBulkEditing ? editor.selectedBulkPreset : editor.selectedDesktopPreset) === editor.activePresetMenuId}
+                        onRename={() => { presetEditor.actions.rename }}
+                        onDelete={() => { presetEditor.actions.delete }}
                     />
                     <HModalEditorDekstop
                         modalName="preset"
@@ -578,7 +658,7 @@ function HImageEditorClient() {
                             />
                         }
                         modalClose={editor.handleClosePresetModal}
-                        onConfirm={editor.handleCreatePreset}
+                        onConfirm={() => { presetEditor.actions.create }}
                     >
                         <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                     </HModalEditorDekstop>

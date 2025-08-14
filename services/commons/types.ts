@@ -1,5 +1,11 @@
 import { Content, DownloadResolution, UploadResolution } from "@/types";
 
+export interface Response<T> {
+	code: number;
+	data?: T;
+	error_message?: string;
+}
+
 interface Log {
 	created_at: string;
 	updated_at: string;

@@ -1,4 +1,5 @@
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
+import axiosRetry from 'axios-retry';
 import {Observable} from "rxjs/internal/Observable";
 import {catchError, from, map} from "rxjs";
 
@@ -10,6 +11,12 @@ const apiConfig = (version: string) => {
         timeout: 60000 * 2,
     })
 }
+
+export const api = axios.create({
+    baseURL: `${BASE_URL}`,
+    timeout: 60000 * 2,
+});
+axiosRetry(api, { retries: 3, retryDelay: axiosRetry.linearDelay() });
 
 export interface ResponseData<T> {
     code?: number;

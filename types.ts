@@ -100,7 +100,10 @@ export interface DownloadCheckResult {
     log?: Log;
 }
 
-export interface Content {
+export interface Content<T = any> {
+    error_message: any;
+    data: T;
+    code: number;
     key: string;
     path: string;
     size: number;
