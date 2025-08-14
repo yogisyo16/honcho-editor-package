@@ -1,10 +1,10 @@
 'use client';
 
-import React, { Suspense, useMemo, useState, useEffect, useRef } from "react";
+import React, { Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { Box, Stack, CircularProgress, Typography, Checkbox, Paper } from "@mui/material";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'; // Magic Wand Icon
 import Script from "next/script";
-import { ResponseGalleryPaging } from "@/types";
+import { ResponseGalleryPaging, Gallery, Content } from "@/types";
 import { GalleryServiceImpl } from "@/services/gallery/gallery";
 import { apiV3 } from "@/services/commons/base";
 import { firstValueFrom } from "rxjs";
@@ -27,17 +27,19 @@ import {
     HAlertCopyBox,
     HAlertPresetSave,
     HAlertInternetConnectionBox,
+    AlbumImageGallery,
     
     // Theme & Utility Hooks
     useColors,
     useIsMobile,
-    useHonchoEditor
+    useHonchoEditor,
 } from '@yogiswara/honcho-editor-ui';
 
 import type {
     Controller,
     AdjustmentState,
     Preset,
+    PhotoData,
 } from '@yogiswara/honcho-editor-ui';
 
 declare global {
@@ -76,11 +78,6 @@ const onGetToken = () => new Promise<string>((resolve, reject) => {
         reject("Not a mobile environment");
     }
 });
-
-const hasAdjustments = (state: AdjustmentState): boolean => {
-    if (!state) return false;
-    return Object.values(state).some(value => value !== 0);
-};
 
 // A placeholder controller for bulk-specific actions if needed
 const exposeBulkController: Controller = {
@@ -160,7 +157,7 @@ const exposeBulkController: Controller = {
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBack) {
             console.log(`Sending imageId '${lastImageID}' to Android native handler.`);
-            (window as any).Android.goBack(lastImageID);
+            (window as any).Android.goBackBulk(lastImageID);
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
@@ -188,6 +185,10 @@ function HImageEditorBulkClient() {
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditorBulk(exposeBulkController, eventId, firebaseId);
     const editor2 = useHonchoEditor(exposeBulkController, imageId, firebaseId);
+    const [imageCollection, setImageCollection] = useState<PhotoData[]>([]);
+    const [isSelectedMode, setIsSelectedMode] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const isMobile = useIsMobile();
     const colors = useColors();
 
@@ -278,15 +279,16 @@ function HImageEditorBulkClient() {
         }
     };
 
+    // Effect to get URL params
     useEffect(() => {
-            if (typeof window !== "undefined") {
-                const params = new URLSearchParams(window.location.search);
-                const eventIdUrl = params.get("eventID");
-                const firebaseUidFromUrl = params.get("firebaseUID");
-                if (eventIdUrl) setEventId(eventIdUrl);
-                if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
-            }
-        }, []);
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const eventIdUrl = params.get("eventID");
+            const firebaseUidFromUrl = params.get("firebaseUID");
+            if (eventIdUrl) setEventId(eventIdUrl);
+            if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
+        }
+    }, []);
 
     return (
         <>
@@ -322,63 +324,27 @@ function HImageEditorBulkClient() {
                     alignItems="stretch"
                     sx={{ width: '100%', flexGrow: 1, overflow: 'hidden' }}
                 >
-                    {/* Main Content Area: File Input or Image Grid */}
-                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: isMobile ? 2 : 4, height: '100%', overflow: 'hidden' }}>
-                        <input type="file" ref={editor2.fileInputRef} onChange={editor.handleFileChangeBulk} multiple accept="image/*" style={{ display: 'none' }} />
-
-                        {editor.imageList.length === 0 ? (
-                            // Initial state: Prompt user to select images
-                            <Box onClick={() => editor2.fileInputRef.current?.click()} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, cursor: 'pointer', textAlign: 'center', color: 'grey.500', width: '100%', height: '300px' }}>
-                                {!editor2.isEditorReady ? <CircularProgress color="inherit" sx={{ mb: 2 }} /> : null}
-                                <Typography variant="h6">Select Images for Bulk Edit</Typography>
-                            </Box>
+                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', overflow: 'hidden' }}>
+                        {editor.isLoading ? (
+                            <CircularProgress sx={{ color: colors.onSurfaceVariant }} />
+                        ) : editor.error ? (
+                            <Typography color="error">{editor.error}</Typography>
+                        ) : editor.imageCollection.length === 0 ? (
+                            <Typography sx={{ color: colors.onSurfaceVariant }}>
+                                No images found in this gallery.
+                            </Typography>
                         ) : (
-                            // State after selection: Display the image grid
-                            <Box sx={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                                gap: 2,
-                                width: '100%',
-                                p: 1,
-                                height: '100%',
-                                overflowY: 'auto',
-                            }}>
-                                {editor.imageList.map(image => {
-                                    // 1. Get the specific adjustments for THIS image from the map
-                                    const imageAdjustments = editor.adjustmentsMap.get(image.id);
-                                    
-                                    // 2. Check if this image has any non-zero adjustments
-                                    const isEdited = imageAdjustments ? hasAdjustments(imageAdjustments) : false;
-
-                                    return (
-                                        <Paper
-                                            key={image.id}
-                                            elevation={3}
-                                            sx={{
-                                                position: 'relative',
-                                                overflow: 'hidden',
-                                                aspectRatio: '1 / 1',
-                                                '& img': {
-                                                    width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-                                                    transition: 'opacity 0.2s ease-in-out',
-                                                    opacity: editor.selectedImageIds.has(image.id) ? 1 : 0.4,
-                                                }
-                                            }}
-                                        >
-                                            <img src={image.url} alt={'Edited Image'} />
-                                            <Checkbox
-                                                checked={editor.selectedImageIds.has(image.id)}
-                                                onChange={() => editor.handleToggleImageSelection(image.id)}
-                                                sx={{ position: 'absolute', top: 4, left: 4, color: 'common.white', '&.Mui-checked': { color: '#1976d2' }, backgroundColor: 'rgba(0, 0, 0, 0.5)', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.7)' } }}
-                                            />
-                                            {/* 3. Conditionally render the icon based on the isEdited variable */}
-                                            {isEdited && (
-                                                <AutoFixHighIcon fontSize="small" sx={{ position: 'absolute', bottom: 8, right: 8, color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%', padding: '2px' }} />
-                                            )}
-                                        </Paper>
-                                    );
-                                })}
-                            </Box>
+                            // --- THESE LINES NOW WORK PERFECTLY ---
+                            // <AlbumImageGallery
+                            //     imageCollection={editor.imageCollection}
+                            //     isSelectedMode={editor.isSelectedMode}
+                            //     onSelectedMode={editor.handleSelectedMode}
+                            //     onToggleSelect={editor.handleToggleSelect}
+                            //     onPreview={editor.handlePreview}
+                            //     isHiddenGallery={false}
+                            //     enableEditor={false}
+                            // />
+                            <></>
                         )}
                     </Box>
 
