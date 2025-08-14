@@ -668,7 +668,7 @@ function HImageEditorClient() {
                         modalTitle="Create Preset"
                         modalInformation="Create a preset with the current Light, Colour and Details settings"
                         modalClose={editor.handleClosePresetModalMobile}
-                        onConfirm={editor.handleCreatePresetMobile}
+                        onConfirm={() => { presetEditor.actions.create }}
                     >
                         <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                     </HModalMobile>
