@@ -28,7 +28,6 @@ import {
     HAlertPresetSave,
     HAlertInternetConnectionBox,
     AlbumImageGallery,
-    ExtendedPhotoData,
     EditorProvider,
     
     // Theme & Utility Hooks
@@ -154,12 +153,12 @@ const exposeBulkController: Controller = {
         // iOS: Send the image ID as a message
         if ((window as any).webkit?.messageHandlers?.nativeHandler) {
             console.log(`Sending imageId '${lastImageID}' to iOS native handler.`);
-            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBackBulk_${lastImageID}`);
+            (window as any).webkit.messageHandlers.nativeHandler.postMessage(`goBack_${lastImageID}`);
         } 
         // Android: Call a new, specific function with the image ID
         else if ((window as any).Android?.goBack) {
             console.log(`Sending imageId '${lastImageID}' to Android native handler.`);
-            (window as any).Android.goBackBulk(lastImageID);
+            (window as any).Android.goBack(lastImageID);
         }
         else {
             console.log("Standard web browser detected. Navigating back in history.");
@@ -280,7 +279,7 @@ function HImageEditorBulkClient() {
         }
     };
 
-    const handleToggleSelect = (photo: ExtendedPhotoData) => {
+    const handleToggleSelect = (photo: PhotoData) => {
         editor.handleToggleImageSelection(photo.key);
     }  
 
@@ -335,17 +334,15 @@ function HImageEditorBulkClient() {
                             <CircularProgress sx={{ color: colors.onSurfaceVariant }} />
                         ) : editor.error ? (
                             <Typography color="error">{editor.error}</Typography>
-                        ) : editor.imageCollection.length === 0 ? (
+                        ) : editor.imageData.length === 0 ? (
                             <Typography sx={{ color: colors.onSurfaceVariant }}>
                                 No images found in this gallery.
                             </Typography>
                         ) : (
                             // --- THESE LINES NOW WORK PERFECTLY ---
                             <AlbumImageGallery
-                                            imageCollection={editor.imageCollection}
-                                            onToggleSelect={handleToggleSelect}
-                                            isHiddenGallery={false}
-                                            enableEditor={false} isSelectedMode={true}                         />
+                                imageCollection={editor.imageData}
+                                onToggleSelect={handleToggleSelect}/>
                         )}
                     </Box>
 
