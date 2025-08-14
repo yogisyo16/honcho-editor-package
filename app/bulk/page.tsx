@@ -340,8 +340,8 @@ function HImageEditorBulkClient() {
                                 imageCollection={editor.imageCollection}
                                 isSelectedMode={editor.isSelectedMode}
                                 onSelectedMode={editor.handleSelectedMode}
-                                onToggleSelect={(photo) => () => editor.handleToggleSelect}
-                                onPreview={(photo) => () => editor.handlePreview}
+                                onToggleSelect={(photo) => editor.handleToggleSelect(photo)}
+                                onPreview={(photo) => editor.handlePreview(photo)}
                                 isHiddenGallery={false}
                                 enableEditor={false}
                             />
