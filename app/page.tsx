@@ -192,8 +192,8 @@ const exposeController: Controller = {
         console.log("syncConfig called");
     },
     getPresets: async (firebaseUid: string) => {
-        if (process.env.NEXT_PUBLIC_USE_MOCK === "true") {
-        console.log("[MOCK] getPresets for:", firebaseUid);
+        console.log("[MOCK - Vercel] getPresets for:", firebaseUid);
+
         return [
             {
                 id: "678506a9b978174d1e9eba19",
@@ -230,7 +230,6 @@ const exposeController: Controller = {
                 sharpness: 50,
             }
         ];
-    }
 
     // Real API call
     try {
