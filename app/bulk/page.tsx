@@ -287,6 +287,7 @@ function HImageEditorBulkClient() {
             const firebaseUidFromUrl = params.get("firebaseUID");
             if (eventIdUrl) setEventId(eventIdUrl);
             if (firebaseUidFromUrl) setfirebaseId(firebaseUidFromUrl);
+            console.log("Event ID:", eventIdUrl, "FirebaseUID: ",firebaseUidFromUrl);
         }
     }, []);
 
