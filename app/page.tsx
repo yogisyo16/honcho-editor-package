@@ -266,19 +266,25 @@ const exposeController: Controller = {
 if (typeof window !== "undefined") {
     // Give it a unique namespace to avoid polluting global scope
     (window as any).__presetTest = {
-        getPresets: (uid: string) => exposeController.getPresets("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1").then(console.log),
-        createPreset: (uid: string, name: string, adjustments: any) => exposeController.createPreset(uid, name, adjustments),
-        updatePreset: (uid: string, preset: any) => exposeController.updatePreset("678506a9b978174d1e9eba19", preset).then(console.log),
-        deletePreset: (uid: string, id: string) => exposeController.deletePreset(uid, id),
+        getPresets: (uid: string) => exposeController.getPresets(uid),
+        
+        createPreset: (uid: string, name: string, adjustments: any) =>
+            exposeController.createPreset(uid, name, adjustments),
+        
+        updatePreset: (uid: string, preset: any) =>
+            exposeController.updatePreset(uid, preset),
+        
+        deletePreset: (uid: string, id: string) =>
+            exposeController.deletePreset(uid, id),
     };
     console.log(
         "%cPreset API test commands available in console:",
         "color: lime; font-weight: bold;"
     );
-    console.log(`__presetTest.getPresets("firebaseId")`);
-    console.log(`__presetTest.createPreset("firebaseId", "My Preset", adjustmentsObject)`);
-    console.log(`__presetTest.updatePreset("firebaseId", presetObject)`);
-    console.log(`__presetTest.deletePreset("firebaseId", "presetId")`);
+    console.log(`__presetTest.getPresets("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1").then(console.log)`);
+    console.log(`__presetTest.createPreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", "My Preset", adjustmentsObject).then(console.log)`);
+    console.log(`__presetTest.updatePreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", presetObject).then(console.log)`);
+    console.log(`__presetTest.deletePreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", "presetId").then(console.log)`);
 }
 
 function HImageEditorClient() {
