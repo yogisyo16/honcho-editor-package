@@ -345,7 +345,7 @@ function HImageEditorBulkClient() {
                                             imageCollection={editor.imageCollection}
                                             onToggleSelect={handleToggleSelect}
                                             isHiddenGallery={false}
-                                            enableEditor={false} isSelectedMode={false}                         />
+                                            enableEditor={false} isSelectedMode={true}                         />
                         )}
                     </Box>
 
