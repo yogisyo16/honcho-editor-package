@@ -190,7 +190,7 @@ const exposeBulkController: Controller = {
     getPresets: async (firebaseUid: string) => {
             console.log("Fetching presets for:", firebaseUid);
             try {
-                const res = await getPresets();
+                const res = await getPresets(firebaseUid);
                 // The API returns: { code, data: { presets: Preset[] }, ... }
                 return res.data?.presets || [];
             } catch (err) {

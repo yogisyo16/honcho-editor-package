@@ -193,7 +193,8 @@ const exposeController: Controller = {
     getPresets: async (firebaseUid: string) => {
         console.log("Fetching presets for:", firebaseUid);
         try {
-            const res = await getPresets();
+            const token = await onGetToken();
+            const res = await getPresets(token);
             // The API returns: { code, data: { presets: Preset[] }, ... }
             return res.data?.presets || [];
         } catch (err) {

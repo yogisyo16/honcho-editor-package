@@ -5,10 +5,12 @@ import { Content } from "@/types";
 import { ColorAdjustment } from "@/services/commons/types";
 
 // GET list of presets
-export async function getPresets(): Promise<Content> {
+export async function getPresets(token: string): Promise<Content> {
     try {
         const res: Content = await api
-            .get<Content>("/v3/user/presets")
+            .get<Content>("/v3/user/presets", {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e));
         
         if (res.code >= 300) {
