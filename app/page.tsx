@@ -234,11 +234,13 @@ const exposeController: Controller = {
         console.log("syncConfig called");
     },
     getPresets: async (firebaseUid: string) => {
+        console.log("✅ 2. DATA SOURCE: exposeController.getPresets() was called. Returning mock data.");
+        console.log("test mode:", isTestMode);
         console.log("Fetching presets for:", firebaseUid);
 
         // ✅ Use mock in test mode
         if (isTestMode) {
-            console.log("[MOCK] Returning fake presets");
+            console.log("Mock file: ", mockPresets);
             return mockPresets;
         }
 
@@ -314,29 +316,29 @@ const exposeController: Controller = {
     },
 };
 
-if (typeof window !== "undefined") {
-    // Give it a unique namespace to avoid polluting global scope
-    (window as any).__presetTest = {
-        getPresets: (uid: string) => exposeController.getPresets(uid),
+// if (typeof window !== "undefined") {
+//     // Give it a unique namespace to avoid polluting global scope
+//     (window as any).__presetTest = {
+//         getPresets: (uid: string) => exposeController.getPresets(uid),
         
-        createPreset: (uid: string, name: string, adjustments: any) =>
-            exposeController.createPreset(uid, name, adjustments),
+//         createPreset: (uid: string, name: string, adjustments: any) =>
+//             exposeController.createPreset(uid, name, adjustments),
         
-        updatePreset: (uid: string, preset: any) =>
-            exposeController.updatePreset(uid, preset),
+//         updatePreset: (uid: string, preset: any) =>
+//             exposeController.updatePreset(uid, preset),
         
-        deletePreset: (uid: string, id: string) =>
-            exposeController.deletePreset(uid, id),
-    };
-    console.log(
-        "%cPreset API test commands available in console:",
-        "color: lime; font-weight: bold;"
-    );
-    console.log(`__presetTest.getPresets("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1").then(console.log)`);
-    console.log(`__presetTest.createPreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", "My Preset", adjustmentsObject).then(console.log)`);
-    console.log(`__presetTest.updatePreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", presetObject).then(console.log)`);
-    console.log(`__presetTest.deletePreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", "presetId").then(console.log)`);
-}
+//         deletePreset: (uid: string, id: string) =>
+//             exposeController.deletePreset(uid, id),
+//     };
+//     console.log(
+//         "%cPreset API test commands available in console:",
+//         "color: lime; font-weight: bold;"
+//     );
+//     console.log(`__presetTest.getPresets("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1").then(console.log)`);
+//     console.log(`__presetTest.createPreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", "My Preset", adjustmentsObject).then(console.log)`);
+//     console.log(`__presetTest.updatePreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", presetObject).then(console.log)`);
+//     console.log(`__presetTest.deletePreset("s7ACwSDsNKRdVGCxVx8Xmt7RvHk1", "presetId").then(console.log)`);
+// }
 
 function HImageEditorClient() {
     // Pass imageId to useHonchoEditor as initialImageId (if your hook supports it)
