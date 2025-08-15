@@ -157,7 +157,7 @@ const exposeBulkController: Controller = {
         try {
             // ✅ 1. Use the 'page' parameter that is passed into the function.
             const response = await firstValueFrom(galleryService.getGallery(token, page, eventId));
-
+            console.log("response: ", response.gallery);
             // ✅ 2. Return the ENTIRE response object to satisfy the Promise<ResponseGalleryPaging> type.
             return response;
         } catch (err) {
