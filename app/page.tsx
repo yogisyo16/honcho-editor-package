@@ -241,6 +241,7 @@ const exposeController: Controller = {
             console.log("MOBILE DEBUG 6: Successfully received token from native app."); // If you don't see this, onGetToken is hanging.
             
             const res = await getPresets(token);
+            console.log("Get this res: ", res);
             console.log("MOBILE DEBUG 7: Successfully called the preset API service.");
             return res.data?.presets || [];
         } catch (err) {
@@ -254,11 +255,11 @@ const exposeController: Controller = {
     
         const apiAdjustments = mapAdjustmentStateToColorAdjustment(settings);
         console.log("API Adjustment: ", apiAdjustments);
-
+        
+        console.log("CREATE PRESET Values: ", name, settings, firebaseUid);
         try {
             const res = await createPreset(name, apiAdjustments);
             console.log("res CREATE PRESET: ", res);
-            console.log("CREATE PRESET Values: ", name, settings, firebaseUid);
 
             if (res.code === 200 || res.code === 202) {
                 // If backend returns the preset, use it; otherwise make a placeholder
@@ -267,6 +268,8 @@ const exposeController: Controller = {
             throw new Error(`Failed to create preset. Status code: ${res.code}`);
         } catch (error) {
             console.error("Failed to create preset via API:", error);
+            const res = await createPreset(name, apiAdjustments);
+            console.log("res CREATE PRESET: ", res);
             throw error;
         }
     },

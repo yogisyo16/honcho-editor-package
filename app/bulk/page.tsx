@@ -196,8 +196,6 @@ const exposeBulkController: Controller = {
                 return res.data?.presets || [];
             } catch (err) {
                 console.error("getPresets error:", err);
-                const res = await getPresets(firebaseUid);
-                console.log("get data: ", res);
                 return [];
             }
         },
