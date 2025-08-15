@@ -420,17 +420,17 @@ function HImageEditorBulkClient() {
                     sx={{ width: '100%', flexGrow: 1, overflow: isMobile ? 'auto' : 'hidden' }}
                 >
                     <Box 
-                        sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', p: 2, height: '100%', width: '100%', overflowY: 'auto' }}
-                        onScroll={(e) => {
-                            const el = e.currentTarget;
-                            // Check if the user is near the bottom
-                            const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
+                        sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', p: 2, height: '100%', width: '100%', overflowY: 'auto', position: 'relative' }}
+                        // onScroll={(e) => {
+                        //     const el = e.currentTarget;
+                        //     // Check if the user is near the bottom
+                        //     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
 
-                            // Call loadMoreImages if near bottom, not already loading, and has more pages
-                            if (nearBottom && !editor.isLoading && !editor.isFetchingMore && editor.hasMore) {
-                                editor.loadMoreImages();
-                            }
-                        }}
+                        //     // Call loadMoreImages if near bottom, not already loading, and has more pages
+                        //     if (nearBottom && !editor.isLoading && !editor.isFetchingMore && editor.hasMore) {
+                        //         editor.loadMoreImages();
+                        //     }
+                        // }}
                     >
                         {editor.isLoading && editor.imageData.length === 0 ? (
                             <CircularProgress sx={{ color: colors.onSurfaceVariant }} />
@@ -446,11 +446,11 @@ function HImageEditorBulkClient() {
                                 onToggleSelect={handleToggleSelect}
                             />
                         )}
-                        {editor.isFetchingMore && (
+                        {/* {editor.isFetchingMore && (
                             <Box sx={{ my: 2 }}>
                                 <CircularProgress size={24} />
                             </Box>
-                        )}
+                        )} */}
                     </Box>
 
                     {/* Desktop UI: Bulk Editor Sidebar */}
