@@ -235,6 +235,7 @@ const exposeController: Controller = {
     },
     getPresets: async (firebaseUid: string) => {
         // Real API call
+        return mockPresets;
         try {
             const token = await onGetToken();
             const res = await getPresets(token);
