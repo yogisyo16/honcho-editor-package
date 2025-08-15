@@ -30,7 +30,7 @@ export async function getPresets(token: string): Promise<Content> {
 }
 
 // CREATE new preset
-export async function createPreset(name: string, adjustments: ColorAdjustment): Promise<Content> {
+export async function createPreset(token: string,name: string, adjustments: ColorAdjustment): Promise<Content> {
     console.log("CREATE PRESET Values FROM SERVICES: ", name, adjustments);
     const requestBody = {
         name,
@@ -39,7 +39,7 @@ export async function createPreset(name: string, adjustments: ColorAdjustment): 
 
     try {
         const res: Content = await api
-            .post<Content>("/v3/presets", requestBody)
+            .post<Content>("/v3/presets", { name, ...adjustments }, {headers: { Authorization: `Bearer ${token}` }})
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
     
         if (res.code >= 300) {

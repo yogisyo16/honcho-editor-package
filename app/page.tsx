@@ -258,7 +258,8 @@ const exposeController: Controller = {
         
         console.log("CREATE PRESET Values: ", name, settings, firebaseUid);
         try {
-            const res = await createPreset(name, apiAdjustments);
+            const token = await onGetToken();
+            const res = await createPreset(token, name, apiAdjustments);
             console.log("res CREATE PRESET: ", res);
 
             if (res.code === 200 || res.code === 202) {
@@ -268,8 +269,6 @@ const exposeController: Controller = {
             throw new Error(`Failed to create preset. Status code: ${res.code}`);
         } catch (error) {
             console.error("Failed to create preset via API:", error);
-            const res = await createPreset(name, apiAdjustments);
-            console.log("res CREATE PRESET: ", res);
             throw error;
         }
     },
