@@ -356,7 +356,7 @@ function HImageEditorClient() {
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
-    const presetEditor = usePreset(exposeController, firebaseId);
+    const presetEditor = usePreset(exposeController, firebaseId, { autoLoad: true });
 
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
@@ -495,13 +495,13 @@ function HImageEditorClient() {
         }
     }, [editor.isImageLoaded, isInitialLoadComplete]);
 
-    useEffect(() => {
-        // We only load if we have a valid firebaseId and the preset hook is ready
-        if (presetEditor.actions.load && (firebaseId || isTestMode)) {
-            console.log("[usePreset] Triggering load for firebaseId:", firebaseId);
-            presetEditor.actions.load();
-        }
-    }, [firebaseId, presetEditor.actions.load]);
+    // useEffect(() => {
+    //     // We only load if we have a valid firebaseId and the preset hook is ready
+    //     if (presetEditor.actions.load && (firebaseId || isTestMode)) {
+    //         console.log("[usePreset] Triggering load for firebaseId:", firebaseId);
+    //         presetEditor.actions.load();
+    //     }
+    // }, [firebaseId, presetEditor.actions.load]);
 
     return (
         <>
