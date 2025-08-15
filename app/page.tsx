@@ -495,7 +495,7 @@ function HImageEditorClient() {
 
     useEffect(() => {
         // We only load if we have a valid firebaseId and the preset hook is ready
-        if (firebaseId && presetEditor.actions.load) {
+        if (presetEditor.actions.load && (firebaseId || isTestMode)) {
             console.log("[usePreset] Triggering load for firebaseId:", firebaseId);
             presetEditor.actions.load();
         }
