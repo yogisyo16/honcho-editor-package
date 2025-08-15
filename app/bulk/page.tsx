@@ -418,7 +418,14 @@ function HImageEditorBulkClient() {
                     alignItems="stretch"
                     sx={{ width: '100%', flexGrow: 1, overflow: isMobile ? 'auto' : 'hidden' }}
                 >
-                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', width: '100%' }}>
+                    <Box 
+                        sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', width: '100%' }}
+                        onScroll={(e) => {
+                            const el = e.currentTarget;
+                            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+                            editor.loadMoreImages();
+                        }}}
+                    >
                         {editor.isLoading ? (
                             <CircularProgress sx={{ color: colors.onSurfaceVariant }} />
                         ) : editor.error ? (
