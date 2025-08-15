@@ -196,6 +196,8 @@ const exposeBulkController: Controller = {
                 return res.data?.presets || [];
             } catch (err) {
                 console.error("getPresets error:", err);
+                const res = await getPresets(firebaseUid);
+                console.log("get data: ", res);
                 return [];
             }
         },
@@ -207,6 +209,7 @@ const exposeBulkController: Controller = {
     
             try {
                 const res = await createPreset(name, apiAdjustments);
+                console.log("res CREATE PRESET: ", res);
     
                 if (res.code === 200 || res.code === 202) {
                     // If backend returns the preset, use it; otherwise make a placeholder
