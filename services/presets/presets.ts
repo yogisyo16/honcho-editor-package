@@ -7,12 +7,15 @@ import { ColorAdjustment } from "@/services/commons/types";
 // GET list of presets
 export async function getPresets(token: string): Promise<Content> {
     try {
-        const res: Content = await api
-            .get<Content>("/v3/user/presets", {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            .then((e: AxiosResponse<Content>) => handleResponse<Content>(e));
+        // 1. Get the full Axios response
+        const response: AxiosResponse<Content> = await api.get<Content>("/v3/user/presets", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // 2. Get the response body (your Content object)
+        const res: Content = response.data;
         
+        // 3. Now you can safely check its properties
         if (res.code >= 300) {
             const err: any = Error(`${res.code}: ${res.error_message}`);
             err.code = res.code;

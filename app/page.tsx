@@ -234,18 +234,19 @@ const exposeController: Controller = {
         console.log("syncConfig called");
     },
     getPresets: async (firebaseUid: string) => {
-        // Real API call
-        const token = await onGetToken();
-        const res = await getPresets(token);
-        console.log("Token for getPresets: ", res);
-        console.log("Data for getPresets: ", res.data);
-        return res.data?.presets || [];
-        // try {
+        console.log("MOBILE DEBUG 4: getPresets function has been entered.");
+        try {
+            console.log("MOBILE DEBUG 5: Attempting to get token from native app...");
+            const token = await onGetToken();
+            console.log("MOBILE DEBUG 6: Successfully received token from native app."); // If you don't see this, onGetToken is hanging.
             
-        // } catch (err) {
-        //     console.error("getPresets error:", err);
-        //     return mockPresets;
-        // }
+            const res = await getPresets(token);
+            console.log("MOBILE DEBUG 7: Successfully called the preset API service.");
+            return res.data?.presets || [];
+        } catch (err) {
+            console.error("MOBILE DEBUG ERROR: An error occurred in the getPresets controller:", err);
+            return []; // Return empty on error
+        }
     },
 
     createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState): Promise<void> => {
