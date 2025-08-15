@@ -235,17 +235,17 @@ const exposeController: Controller = {
     },
     getPresets: async (firebaseUid: string) => {
         // Real API call
-        // return mockPresets;
-        try {
-            const token = await onGetToken();
-            const res = await getPresets(token);
-            console.log("Token for getPresets: ", res);
-            console.log("Data for getPresets: ", res.data);
-            return res.data?.presets || [];
-        } catch (err) {
-            console.error("getPresets error:", err);
-            return mockPresets;
-        }
+        const token = await onGetToken();
+        const res = await getPresets(token);
+        console.log("Token for getPresets: ", res);
+        console.log("Data for getPresets: ", res.data);
+        return res.data?.presets || [];
+        // try {
+            
+        // } catch (err) {
+        //     console.error("getPresets error:", err);
+        //     return mockPresets;
+        // }
     },
 
     createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState): Promise<void> => {
