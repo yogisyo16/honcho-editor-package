@@ -763,7 +763,7 @@ function HImageEditorClient() {
                         modalClose={editor.handleClosePresetModalMobile}
                         onConfirm={async () => {
                             await presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState);
-                            editor.handleClosePresetModal(); // closes desktop modal
+                            editor.handleClosePresetModalMobile(); // closes desktop modal
                         }}
                         action={
                             <HDialogPreset
