@@ -206,10 +206,12 @@ const exposeBulkController: Controller = {
             console.log("Calling real createPreset service for:", name);
     
             const apiAdjustments = mapAdjustmentStateToColorAdjustment(settings);
+            console.log("API Adjustment: ", apiAdjustments);
     
             try {
                 const res = await createPreset(name, apiAdjustments);
                 console.log("res CREATE PRESET: ", res);
+                console.log("CREATE PRESET Values: ", name, settings, firebaseUid);
     
                 if (res.code === 200 || res.code === 202) {
                     // If backend returns the preset, use it; otherwise make a placeholder
