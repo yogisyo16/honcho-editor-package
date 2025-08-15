@@ -427,7 +427,7 @@ function HImageEditorBulkClient() {
 
                             if (nearBottom && !editor.isLoading && editor.hasMore) {
                                 console.log("🔄 Loading next page...");
-                                editor.loadMoreImages();
+                                // editor.loadMoreImages();
                             }
                         }}
                     >
