@@ -8,7 +8,7 @@ import Script from 'next/script';
 import { ResponseGalleryPaging } from "@/types";
 import { GalleryServiceImpl } from "@/services/gallery/gallery";
 import { apiV3 } from "@/services/commons/base";
-import { getPresets, updatePreset, createPreset, deletePreset } from "@/services/presets/presets";
+import { getPresets, updatePreset, createPreset, deletePreset, PresetServiceImpl } from "@/services/presets/presets";
 import { ColorAdjustment } from "@/services/commons/types";
 import { firstValueFrom } from "rxjs";
 import {
@@ -233,17 +233,24 @@ const exposeController: Controller = {
     syncConfig: async (firebaseUid: string) => {
         console.log("syncConfig called");
     },
-    getPresets: async (firebaseUid: string) => {
+    getPresets: async (firebaseUid: string): Promise<Preset[]> => {
         console.log("MOBILE DEBUG 4: getPresets function has been entered.");
+        const presetService = new PresetServiceImpl(apiV3, firebaseUid); // Assuming you've instantiated this
         try {
             console.log("MOBILE DEBUG 5: Attempting to get token from native app...");
             const token = await onGetToken();
-            console.log("MOBILE DEBUG 6: Successfully received token from native app."); // If you don't see this, onGetToken is hanging.
+            console.log("MOBILE DEBUG 6: Successfully received token from native app.");
             
-            const res = await getPresets(token);
+            // --- THIS IS THE FIX ---
+            // Convert the Observable from the service into a Promise and await its result.
+            const res = await firstValueFrom(presetService.getPresets(token));
+            
             console.log("Get this res: ", res);
             console.log("MOBILE DEBUG 7: Successfully called the preset API service.");
-            return res.data?.presets || [];
+
+            // The result 'res' is now the Preset[] array, which matches the expected return type.
+            return res;
+
         } catch (err) {
             console.error("MOBILE DEBUG ERROR: An error occurred in the getPresets controller:", err);
             return []; // Return empty on error
@@ -251,24 +258,31 @@ const exposeController: Controller = {
     },
 
     createPreset: async (firebaseUid: string, name: string, settings: AdjustmentState): Promise<void> => {
-        console.log("Calling real createPreset service for:", name);
-    
-        const apiAdjustments = mapAdjustmentStateToColorAdjustment(settings);
-        console.log("API Adjustment: ", apiAdjustments);
+        console.log("Calling createPreset service for:", name);
         
-        console.log("CREATE PRESET Values: ", name, settings, firebaseUid);
+        // 1. Instantiate the service, just like in getPresets
+        const presetService = new PresetServiceImpl(apiV3, firebaseUid);
+        
+        // Map the UI state to the format the API expects
+        const apiAdjustments = mapAdjustmentStateToColorAdjustment(settings);
+        
         try {
             const token = await onGetToken();
-            const res = await createPreset(token, name, apiAdjustments);
-            console.log("res CREATE PRESET: ", res);
+            
+            // 2. Call the method on the 'presetService' instance and use 'firstValueFrom'
+            //    to convert the Observable to a Promise.
+            const createdPreset = await firstValueFrom(
+                presetService.createPreset(token, name, apiAdjustments)
+            );
 
-            if (res.code === 200 || res.code === 202) {
-                // If backend returns the preset, use it; otherwise make a placeholder
-                return res.data?.preset || { id: new Date().toISOString(), name };
-            }
-            throw new Error(`Failed to create preset. Status code: ${res.code}`);
+            console.log("Successfully created preset via API:", createdPreset);
+            
+            // 3. Since the controller interface expects Promise<void>, we don't return a value.
+            //    The operation is considered successful if no error is thrown.
+            
         } catch (error) {
             console.error("Failed to create preset via API:", error);
+            // Re-throw the error so the calling hook (usePreset) can catch it
             throw error;
         }
     },
