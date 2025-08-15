@@ -239,6 +239,8 @@ const exposeController: Controller = {
         try {
             const token = await onGetToken();
             const res = await getPresets(token);
+            console.log("Token for getPresets: ", res);
+            console.log("Data for getPresets: ", res.data);
             return res.data?.presets || [];
         } catch (err) {
             console.error("getPresets error:", err);
