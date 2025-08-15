@@ -35,7 +35,7 @@ export async function createPreset(token: string,name: string, adjustments: Colo
 
     try {
         const res: Content = await api
-            .post<Content>("/v3/presets", { name, ...adjustments }, {headers: { Authorization: `Bearer ${token}` }})
+            .post<Content>("/v3/user/presets", { name, ...adjustments }, {headers: { Authorization: `Bearer ${token}` }})
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
     
         if (res.code >= 300) {
@@ -56,7 +56,7 @@ export async function createPreset(token: string,name: string, adjustments: Colo
 export async function updatePreset(id: string, name: string, adjustments: ColorAdjustment): Promise<Content> {
     try {
         const res: Content = await api
-            .put<Content>(`/v3/presets/${id}`, { name, adjustments })
+            .put<Content>(`/v3/user/presets/${id}`, { name, adjustments })
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
 
         if (res.code >= 300) {
@@ -77,7 +77,7 @@ export async function updatePreset(id: string, name: string, adjustments: ColorA
 export async function deletePreset(id: string): Promise<Content> {
     try {
         const res: Content = await api
-            .delete<Content>(`/v3/presets/${id}`)
+            .delete<Content>(`/v3/user/presets/${id}`)
             .then((e: AxiosResponse<Content>) => handleResponse<Content>(e))
 
         if (res.code >= 300) {
