@@ -749,7 +749,10 @@ function HImageEditorClient() {
                             />
                         }
                         modalClose={editor.handleClosePresetModal}
-                        onConfirm={() => presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState)}
+                        onConfirm={async () => {
+                            await presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState);
+                            editor.handleClosePresetModal(); // closes desktop modal
+                        }}
                     >
                         <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                     </HModalEditorDekstop>
@@ -759,7 +762,10 @@ function HImageEditorClient() {
                         modalTitle="Create Preset"
                         modalInformation="Create a preset with the current Light, Colour and Details settings"
                         modalClose={editor.handleClosePresetModalMobile}
-                        onConfirm={() => presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState)}
+                        onConfirm={async () => {
+                            await presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState);
+                            editor.handleClosePresetModal(); // closes desktop modal
+                        }}
                         action={
                             <HDialogPreset
                                 colorChecks={editor.copyColorChecks}

@@ -4,7 +4,6 @@ import { handleResponse } from "@/services/commons/base";
 import { Content } from "@/types";
 import { ColorAdjustment } from "@/services/commons/types";
 
-// GET list of presets
 export async function getPresets(token: string): Promise<Content> {
     try {
         // 1. Get the full Axios response
@@ -14,7 +13,7 @@ export async function getPresets(token: string): Promise<Content> {
 
         // 2. Get the response body (your Content object)
         const res: Content = response.data;
-        
+        console.log("From services: ", res);
         // 3. Now you can safely check its properties
         if (res.code >= 300) {
             const err: any = Error(`${res.code}: ${res.error_message}`);
@@ -32,6 +31,7 @@ export async function getPresets(token: string): Promise<Content> {
 
 // CREATE new preset
 export async function createPreset(name: string, adjustments: ColorAdjustment): Promise<Content> {
+    console.log("CREATE PRESET Values FROM SERVICES: ", name, adjustments);
     const requestBody = {
         name,
         ...adjustments

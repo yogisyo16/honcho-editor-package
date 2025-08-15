@@ -16,6 +16,23 @@ export interface IBaseResponse {
 	data: string;
 }
 
+export interface ImageEditorPreset {
+	name: string;
+	id?: string;
+	temperature: number;
+	tint: number;
+	saturation: number;
+	vibrance: number;
+	exposure: number;
+	contrast: number;
+	highlights: number;
+	shadows: number;
+	whites: number;
+	blacks: number;
+	clarity: number;
+	sharpness: number;
+}
+
 export interface ProfileUser {
 	company_logo_url: string;
 	profile_photo_url: string;
