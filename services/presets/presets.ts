@@ -32,10 +32,6 @@ export async function getPresets(token: string): Promise<Content> {
 // CREATE new preset
 export async function createPreset(token: string,name: string, adjustments: ColorAdjustment): Promise<Content> {
     console.log("CREATE PRESET Values FROM SERVICES: ", name, adjustments);
-    const requestBody = {
-        name,
-        ...adjustments
-    };
 
     try {
         const res: Content = await api
