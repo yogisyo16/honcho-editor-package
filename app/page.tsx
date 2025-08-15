@@ -234,16 +234,6 @@ const exposeController: Controller = {
         console.log("syncConfig called");
     },
     getPresets: async (firebaseUid: string) => {
-        console.log("✅ 2. DATA SOURCE: exposeController.getPresets() was called. Returning mock data.");
-        console.log("test mode:", isTestMode);
-        console.log("Fetching presets for:", firebaseUid);
-
-        // ✅ Use mock in test mode
-        if (isTestMode) {
-            console.log("Mock file: ", mockPresets);
-            return mockPresets;
-        }
-
         // Real API call
         try {
             const token = await onGetToken();
@@ -251,7 +241,7 @@ const exposeController: Controller = {
             return res.data?.presets || [];
         } catch (err) {
             console.error("getPresets error:", err);
-            return [];
+            return mockPresets;
         }
     },
 
