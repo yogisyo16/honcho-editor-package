@@ -356,7 +356,7 @@ function HImageEditorClient() {
     const [imageId, setimageId] = useState<string>("");
     const [firebaseId, setfirebaseId] = useState<string>("");
     const editor = useHonchoEditor(exposeController, imageId, firebaseId);
-    const presetEditor = usePreset(exposeController, "s7ACwSDsNKRdVGCxVx8Xmt7RvHk1");
+    const presetEditor = usePreset(exposeController, firebaseId);
 
     const handleScale = (event: React.MouseEvent<HTMLElement>) => editor.setAnchorMenuZoom(event.currentTarget);
     const handleBeforeAfter = () => console.log("Before/After toggled!");
