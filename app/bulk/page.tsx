@@ -558,7 +558,6 @@ function HImageEditorBulkClient() {
                         anchorEl={editor2.presetMenuAnchorEl}
                         isOpen={Boolean(editor2.presetMenuAnchorEl)}
                         onClose={editor2.handlePresetMenuClose}
-                        onRemove={editor2.handleRemovePreset}
                         onRename={editor2.handleOpenRenameModal}
                         onDelete={() => {
                             if (editor2.activePresetMenuId) {

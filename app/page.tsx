@@ -720,7 +720,6 @@ function HImageEditorClient() {
                         anchorEl={editor.presetMenuAnchorEl}
                         isOpen={Boolean(editor.presetMenuAnchorEl)}
                         onClose={editor.handlePresetMenuClose}
-                        onRemove={editor.handleRemovePreset}
                         onRename={() => { presetEditor.actions.rename }}
                         onDelete={() => {
                             if (editor.activePresetMenuId) {
