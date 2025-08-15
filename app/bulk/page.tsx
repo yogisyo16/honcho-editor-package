@@ -420,14 +420,18 @@ function HImageEditorBulkClient() {
                     sx={{ width: '100%', flexGrow: 1, overflow: isMobile ? 'auto' : 'hidden' }}
                 >
                     <Box 
-                        sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', width: '100%' }}
+                        sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, height: '100%', width: '100%', overflowY: 'auto' }}
                         onScroll={(e) => {
                             const el = e.currentTarget;
-                            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
-                            editor.loadMoreImages();
-                        }}}
+                            const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 50;
+
+                            if (nearBottom && !editor.isLoading && editor.hasMore) {
+                                console.log("🔄 Loading next page...");
+                                editor.loadMoreImages();
+                            }
+                        }}
                     >
-                        {editor.isLoading ? (
+                        {editor.isLoading && editor.imageData.length === 0 ? (
                             <CircularProgress sx={{ color: colors.onSurfaceVariant }} />
                         ) : editor.error ? (
                             <Typography color="error">{editor.error}</Typography>
@@ -436,10 +440,10 @@ function HImageEditorBulkClient() {
                                 No images found in this gallery.
                             </Typography>
                         ) : (
-                            // --- THESE LINES NOW WORK PERFECTLY ---
                             <AlbumImageGallery
                                 imageCollection={editor.imageData}
-                                onToggleSelect={handleToggleSelect}/>
+                                onToggleSelect={handleToggleSelect}
+                            />
                         )}
                     </Box>
 
