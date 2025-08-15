@@ -655,7 +655,7 @@ function HImageEditorClient() {
                     
                     {isMobile && (
                         <HImageEditorMobile
-                            presets={editor.presets}
+                            presets={presetEditor.presets}
                             contentRef={editor.contentRef}
                             panelRef={editor.panelRef}
                             panelHeight={editor.panelHeight}
@@ -747,6 +747,20 @@ function HImageEditorClient() {
                         modalInformation="Create a preset with the current Light, Colour and Details settings"
                         modalClose={editor.handleClosePresetModalMobile}
                         onConfirm={() => presetEditor.actions.create(editor.presetName, editor.currentAdjustmentsState)}
+                        action={
+                            <HDialogPreset
+                                colorChecks={editor.copyColorChecks}
+                                lightChecks={editor.copyLightChecks}
+                                detailsChecks={editor.copyDetailsChecks}
+                                setColorChecks={editor.setCopyColorChecks}
+                                setLightChecks={editor.setCopyLightChecks}
+                                setDetailsChecks={editor.setCopyDetailsChecks}
+                                expanded={editor.copyDialogExpanded}
+                                onParentChange={editor.handleCopyParentChange}
+                                onChildChange={editor.handleCopyChildChange}
+                                onToggleExpand={editor.handleToggleCopyDialogExpand}
+                            />
+                        }
                     >
                         <HTextField valueName={editor.presetName} setName={editor.handleNameChange} />
                     </HModalMobile>
