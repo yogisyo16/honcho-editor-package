@@ -50,55 +50,10 @@ export interface Event {
 	name: string;
 }
 
-export interface Branding {
-	profile: {
-		bio: string;
-		email: string;
-		id: string;
-		is_default: boolean;
-		name: string;
-		phone: string;
-		photo: string;
-		website: string;
-	};
-	show_honcho_branding: boolean;
-	show_profile: boolean;
-}
-
-export interface EventSettings {
-	id: string;
-	landscape_frame: Content;
-	portrait_frame: Content;
-	branding: Branding;
-	auto_publish: boolean;
-	show_gallery: boolean;
-	show_slide_show: boolean;
-	// This for check if image blur or not
-	hidden_gallery: boolean;
-	output: {
-		width: number;
-		height: number;
-	};
-	upload_resolution: UploadResolution;
-	download_resolution: DownloadResolution;
-	log?: Log;
-	form: Form;
-}
-
-export interface EventPassword {
-	id: string;
-	password: string;
-}
-
 export interface GalleryStats {
 	published: number;
 	pending: number;
 	deleted: number;
-}
-
-export interface FaceRecognitionStats {
-	usage: number;
-	limit: number;
 }
 
 export interface ColorAdjustment {
@@ -212,54 +167,20 @@ export interface Task {
 
 export type SizeDownload = "hi-res" | "web-size";
 
-export interface IEventReportPayload {
-	type:
-		| "gallery_visit"
-		| "photo_view"
-		| "download"
-		| "photo_download"
-		| "profile_view"
-		| "face_search"
-		| "feedback";
-	proc: "inc" | "dec";
-	num: number;
+
+export interface EditorConfigHistory {
+    color_adjustment: ColorAdjustment;
 }
 
-type FieldType =
-	| "description"
-	| "short_text"
-	| "long_text"
-	| "multiple_choice"
-	| "dropdown"
-	| "phone_number"
-	| "email"
-	| "date"
-	| "checkbox";
-
-type AppearanceType = "on_download_action" | "immediately" | "few_second_after";
-
-export interface FormField {
-	id: string;
-	label: string;
-	type: FieldType;
-	sort_order?: number;
-	required?: boolean;
-	options?: string[];
+export interface HistoryEditorConfig {
+    id: string;
+    gallery_id: string;
+    event_id: string;
+    task_id: string;
+    editor_config: EditorConfigHistory;
+    log: Log;
 }
 
-interface FormData {
-	id: string;
-	user_id: string;
-	title: string;
-	is_default: boolean;
-	fields: FormField[];
-}
-
-export interface Form {
-	show_form: boolean;
-	appearance: AppearanceType;
-	appearance_after_seconds?: number;
-	mandatory: boolean;
-	form_id: string;
-	form_data: FormData;
+export interface HistoryEditorConfigResponse {
+    history: HistoryEditorConfig[];
 }
